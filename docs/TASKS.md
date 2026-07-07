@@ -1,6 +1,6 @@
 # TASKS.md
 
-Lista detalhada de tarefas do projeto, extraída do briefing oficial da atividade em [`docs/refererencia.pdf`](./refererencia.pdf) (PosTech "Tech Challenge"). Ver também as diretrizes gerais em [`CLAUDE.md`](../CLAUDE.md).
+Lista detalhada de tarefas do projeto, referente à atividade PosTech "Tech Challenge". Ver também as diretrizes gerais em [`CLAUDE.md`](../CLAUDE.md).
 
 ## Contexto do problema
 

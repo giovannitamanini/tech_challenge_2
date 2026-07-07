@@ -8,13 +8,13 @@ Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, 
 
 ## Status do projeto
 
-Este repositório contém o briefing da atividade (`docs/refererencia.pdf`, PosTech "Tech Challenge"), a lista de tarefas derivada dele (`docs/TASKS.md`) e o dataset bruto em `data/`. O repositório git local já foi inicializado. Ainda não existe código-fonte, `pyproject.toml`, Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
+Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado. Ainda não existe código-fonte, `pyproject.toml`, Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
 
 `data/` (dataset bruto) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados.
 
 ## Lista de tarefas
 
-Todas as tarefas do projeto, detalhadas e ordenadas por etapa (conforme o briefing em `docs/refererencia.pdf`), estão em [`docs/TASKS.md`](docs/TASKS.md). Consulte esse arquivo antes de iniciar qualquer trabalho de implementação e marque os itens (`- [ ]` → `- [x]`) conforme forem concluídos.
+Todas as tarefas do projeto, detalhadas e ordenadas por etapa, estão em [`docs/TASKS.md`](docs/TASKS.md). Consulte esse arquivo antes de iniciar qualquer trabalho de implementação e marque os itens (`- [ ]` → `- [x]`) conforme forem concluídos.
 
 ## O que está sendo construído
 
