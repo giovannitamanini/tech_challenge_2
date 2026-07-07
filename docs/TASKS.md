@@ -42,9 +42,9 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
   - dependências de produção: `pytorch`, `scikit-learn`, `mlflow`, `dvc` (entre outras necessárias);
   - dependências de desenvolvimento: `pytest`, `ruff` (entre outras necessárias).
 - [x] Gerar o lock file e commitá-lo no repositório.
-- [ ] Externalizar todas as configurações para `.env`, lidas via Pydantic Settings (nada de configuração hardcoded no código).
-- [ ] Criar `.env.example` com todas as variáveis documentadas (sem valores sensíveis).
-- [ ] Criar script de validação de ambiente em `scripts/validate_env.py`.
+- [x] Externalizar todas as configurações para `.env`, lidas via Pydantic Settings (nada de configuração hardcoded no código).
+- [x] Criar `.env.example` com todas as variáveis documentadas (sem valores sensíveis).
+- [x] Criar script de validação de ambiente em `scripts/validate_env.py`.
 - [ ] Verificar que o projeto instala de forma limpa em um ambiente novo (do zero).
 
 **Entregável da etapa:** projeto instalável do zero com `poetry install`.

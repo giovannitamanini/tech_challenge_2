@@ -56,6 +56,13 @@ O projeto usa **uv** (não Poetry) como gerenciador de pacotes e de ambiente —
 - Ao adicionar/remover dependências, prefira `uv add <pacote>` / `uv remove <pacote>` a editar o `pyproject.toml` manualmente, para manter `pyproject.toml` e `uv.lock` sincronizados.
 - Configuração de `ruff` (`line-length = 100`, `target-version = "py313"`, `select = ["E", "F", "I"]`) e de `pytest` (`testpaths = ["tests"]`, coverage em `src/`) já estão em `pyproject.toml`.
 
+## Configuração via `.env`
+
+- `src/tech_challenge_recomendacao/configuracoes.py` define `Configuracoes` (Pydantic `BaseSettings`) — única fonte de configuração do projeto. Nenhum valor (caminhos, seed, URIs) deve ser hardcoded em outro lugar do código; sempre importar `configuracoes` desse módulo.
+- `.env` (não commitado, listado no `.gitignore`) contém os valores reais lidos em runtime; `.env.example` (commitado) documenta todas as variáveis com valores de exemplo/padrão.
+- Variáveis atuais: `SEMENTE_ALEATORIA`, `MLFLOW_TRACKING_URI`, `DIRETORIO_DADOS_BRUTOS`, `DIRETORIO_DADOS_PROCESSADOS`, `DIRETORIO_MODELOS`. Ao adicionar uma nova configuração, adicione o campo em `Configuracoes` **e** a variável correspondente em `.env.example`.
+- `scripts/validate_env.py` valida a versão do Python, o carregamento das configurações e a existência dos diretórios esperados — rodar via `uv run python scripts/validate_env.py`.
+
 ## Convenções obrigatórias do repositório
 
 - `.dockerignore`, `.gitignore`, `.env.example` presentes; configurações externalizadas via `.env` + Pydantic Settings (sem configuração hardcoded).
@@ -81,6 +88,7 @@ O stage `train` registra params, métricas e artefatos no MLflow a cada run (≥
 ## Comandos
 
 - `uv sync` — instala o projeto e todas as dependências (prod + dev) em `.venv/`; deve funcionar de forma limpa em um ambiente novo (critério explícito de avaliação).
+- `uv run python scripts/validate_env.py` — valida versão do Python, carregamento do `.env`/Pydantic Settings e existência dos diretórios de dados/modelos.
 - `uv run pytest` — roda a suíte de testes (ainda não existe; criar testes por módulo em `tests/`).
 - `uv run ruff check .` — linting; deve estar sem erros.
 - `uv run ruff format .` — formatação.
