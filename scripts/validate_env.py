@@ -18,8 +18,10 @@ def validar_versao_python() -> bool:
     """
     versao_atual = sys.version_info[:2]
     if versao_atual < PYTHON_MINIMO:
-        print(f"[ERRO] Python {'.'.join(map(str, PYTHON_MINIMO))}+ é exigido, "
-              f"encontrado {'.'.join(map(str, versao_atual))}.")
+        print(
+            f"[ERRO] Python {'.'.join(map(str, PYTHON_MINIMO))}+ é exigido, "
+            f"encontrado {'.'.join(map(str, versao_atual))}."
+        )
         return False
     print(f"[OK] Python {'.'.join(map(str, versao_atual))}")
     return True

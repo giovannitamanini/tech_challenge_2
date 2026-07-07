@@ -65,6 +65,12 @@ O projeto usa **uv** (não Poetry) como gerenciador de pacotes e de ambiente —
 - Variáveis atuais: `SEMENTE_ALEATORIA`, `MLFLOW_TRACKING_URI`, `DIRETORIO_DADOS_BRUTOS`, `DIRETORIO_DADOS_PROCESSADOS`, `DIRETORIO_MODELOS`. Ao adicionar uma nova configuração, adicione o campo em `Configuracoes` **e** a variável correspondente em `.env.example`.
 - `scripts/validate_env.py` valida a versão do Python, o carregamento das configurações e a existência dos diretórios esperados — rodar via `uv run python scripts/validate_env.py`.
 
+## Linting e pre-commit
+
+- `.pre-commit-config.yaml` configura o hook `ruff-check --fix` + `ruff-format` (via [ruff-pre-commit](https://github.com/astral-sh/ruff-pre-commit), `rev` travado em uma versão compatível com o `ruff` do `pyproject.toml`).
+- O hook já está instalado neste clone em `.git/hooks/pre-commit` — roda automaticamente a cada `git commit`. **Atenção:** `.git/hooks/` não é versionado; qualquer clone novo precisa rodar `uv run pre-commit install` uma vez (isso deveria também entrar no `README.md` de setup na Etapa 4).
+- Para rodar manualmente em todos os arquivos: `uv run pre-commit run --all-files`.
+
 ## Convenções obrigatórias do repositório
 
 - `.dockerignore`, `.gitignore`, `.env.example` presentes; configurações externalizadas via `.env` + Pydantic Settings (sem configuração hardcoded).
@@ -94,6 +100,8 @@ O stage `train` registra params, métricas e artefatos no MLflow a cada run (≥
 - `uv run pytest` — roda a suíte de testes (ainda não existe; criar testes por módulo em `tests/`).
 - `uv run ruff check .` — linting; deve estar sem erros.
 - `uv run ruff format .` — formatação.
+- `uv run pre-commit install` — instala o git hook local (necessário uma vez por clone; não é versionado).
+- `uv run pre-commit run --all-files` — roda os hooks configurados (ruff check + format) em todo o repositório.
 - `uv add <pacote>` / `uv add --dev <pacote>` — adiciona dependência de produção/dev e atualiza `pyproject.toml` + `uv.lock`.
 - `dvc repro` — ainda não configurado; vai executar o pipeline completo de dados/treino (Etapa 3).
 - `docker compose up` — ainda não configurado; vai subir o serviço de treino + servidor MLflow (Etapa 3).

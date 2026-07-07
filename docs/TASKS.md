@@ -27,8 +27,8 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
   - **Template Method** para os loops de treino.
 - [ ] Adicionar type hints em todas as funções públicas.
 - [ ] Adicionar docstrings no estilo Google em todas as funções públicas.
-- [ ] Configurar `ruff` rodando sem erros.
-- [ ] Configurar pre-commit hooks que executam o `ruff` automaticamente.
+- [x] Configurar `ruff` rodando sem erros.
+- [x] Configurar pre-commit hooks que executam o `ruff` automaticamente.
 
 **Entregável da etapa:** repositório base com estrutura limpa e linting passando.
 
