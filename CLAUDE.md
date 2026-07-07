@@ -29,18 +29,20 @@ Stack obrigatória:
 
 ## Dataset
 
-O dataset escolhido é o **MovieLens ml-32m** (GroupLens/University of Minnesota), um dataset de um serviço de recomendação de filmes. Todos os arquivos referentes a ele ficam em `data/`:
+O dataset escolhido é o **MovieLens ml-32m** (GroupLens/University of Minnesota), um dataset de um serviço de recomendação de filmes. `data/` está organizado em subpastas por estágio do pipeline:
 
-- `movies.csv` — catálogo de filmes (id, título, gêneros)
-- `ratings.csv` — ~32 milhões de avaliações (5 estrelas) de ~200 mil usuários; arquivo grande (~870 MB)
-- `tags.csv` — ~2 milhões de tags livres aplicadas pelos usuários
-- `links.csv` — mapeamento dos ids de filmes para IMDb/TMDb
-- `README.txt` — documentação original do dataset (licença de uso, citação obrigatória, descrição dos campos)
-- `checksums.txt` — checksums dos arquivos originais
+- `data/raw_data/` — dados brutos originais e suas referências, tal como baixados, sem nenhuma transformação:
+  - `movies.csv` — catálogo de filmes (id, título, gêneros)
+  - `ratings.csv` — ~32 milhões de avaliações (5 estrelas) de ~200 mil usuários; arquivo grande (~870 MB)
+  - `tags.csv` — ~2 milhões de tags livres aplicadas pelos usuários
+  - `links.csv` — mapeamento dos ids de filmes para IMDb/TMDb
+  - `README.txt` — documentação original do dataset (licença de uso, citação obrigatória, descrição dos campos)
+  - `checksums.txt` — checksums dos arquivos originais
+- `data/processed_data/` — saída dos estágios de pré-processamento/feature engineering do pipeline DVC (`preprocess`, `feature_eng`); vazia até que esses stages sejam implementados.
 
-Licença: uso apenas para fins de pesquisa/acadêmicos, sem uso comercial sem autorização do GroupLens Research Project, e com citação obrigatória do paper (Harper & Konstan, 2015) em qualquer publicação — ver `data/README.txt` para o texto completo.
+Licença: uso apenas para fins de pesquisa/acadêmicos, sem uso comercial sem autorização do GroupLens Research Project, e com citação obrigatória do paper (Harper & Konstan, 2015) em qualquer publicação — ver `data/raw_data/README.txt` para o texto completo.
 
-**Importante sobre versionamento:** `data/` é o local correto para os dados brutos (consistente com a estrutura de projeto exigida no spec), mas dado o tamanho de `ratings.csv` (~870 MB) esses arquivos **não devem ser commitados no git** — devem ser versionados via DVC (`dvc add data/...`) assim que o pipeline for inicializado, com `data/` entrando no `.gitignore` e apenas os ponteiros `.dvc` indo para o git.
+**Importante sobre versionamento:** `data/` é o local correto para os dados (consistente com a estrutura de projeto exigida no spec), mas dado o tamanho de `data/raw_data/ratings.csv` (~870 MB) esses arquivos **não devem ser commitados no git** — devem ser versionados via DVC (`dvc add data/raw_data/...`) assim que o pipeline for inicializado, com `data/` entrando no `.gitignore` e apenas os ponteiros `.dvc` indo para o git.
 
 ## Convenções obrigatórias do repositório
 
