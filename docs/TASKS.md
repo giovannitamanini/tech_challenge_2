@@ -45,7 +45,7 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 - [x] Externalizar todas as configurações para `.env`, lidas via Pydantic Settings (nada de configuração hardcoded no código).
 - [x] Criar `.env.example` com todas as variáveis documentadas (sem valores sensíveis).
 - [x] Criar script de validação de ambiente em `scripts/validate_env.py`.
-- [ ] Verificar que o projeto instala de forma limpa em um ambiente novo (do zero).
+- [x] Verificar que o projeto instala de forma limpa em um ambiente novo (do zero). Evidência: [`docs/evidencias/instalacao_limpa_etapa2.md`](evidencias/instalacao_limpa_etapa2.md).
 
 **Entregável da etapa:** projeto instalável do zero com `poetry install`.
 

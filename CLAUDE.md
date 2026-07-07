@@ -8,9 +8,11 @@ Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, 
 
 ## Status do projeto
 
-Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e o `pyproject.toml`/`uv.lock` já estão configurados (ver seção "Gerenciamento de dependências" abaixo). Ainda não existe código-fonte de fato (o pacote em `src/tech_challenge_recomendacao/` está vazio), Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
+Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Ainda não existe código-fonte de aplicação de fato (o pacote em `src/tech_challenge_recomendacao/` só tem o módulo de configurações), Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
 
 `data/` (dataset bruto) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados.
+
+**Limitação conhecida:** como `data/` é ignorado pelo git, um clone novo do repositório **não tem** `data/raw_data/` nem `data/processed_data/` até que o pipeline DVC (Etapa 3) seja configurado e um `dvc pull` seja rodado. Isso é esperado no estágio atual do projeto — não é um bug a corrigir agora.
 
 ## Lista de tarefas
 
