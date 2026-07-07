@@ -1,0 +1,5 @@
+# Dataset bruto (versionado via DVC, não no git)
+data/
+
+# Documentos PDF (specs, referências etc.)
+*.pdf
