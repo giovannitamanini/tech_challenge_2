@@ -3,3 +3,18 @@ data/
 
 # Documentos PDF (specs, referências etc.)
 *.pdf
+
+# Ambiente virtual e cache do Python/uv
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# MLflow / artefatos locais de treino
+mlruns/
+mlartifacts/

@@ -8,7 +8,7 @@ Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, 
 
 ## Status do projeto
 
-Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, e a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada — ainda vazia, apenas com `.gitkeep`. Ainda não existe código-fonte, `pyproject.toml`, Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
+Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e o `pyproject.toml`/`uv.lock` já estão configurados (ver seção "Gerenciamento de dependências" abaixo). Ainda não existe código-fonte de fato (o pacote em `src/tech_challenge_recomendacao/` está vazio), Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
 
 `data/` (dataset bruto) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados.
 
@@ -44,9 +44,20 @@ Licença: uso apenas para fins de pesquisa/acadêmicos, sem uso comercial sem au
 
 **Importante sobre versionamento:** `data/` é o local correto para os dados (consistente com a estrutura de projeto exigida no spec), mas dado o tamanho de `data/raw_data/ratings.csv` (~870 MB) esses arquivos **não devem ser commitados no git** — devem ser versionados via DVC (`dvc add data/raw_data/...`) assim que o pipeline for inicializado, com `data/` entrando no `.gitignore` e apenas os ponteiros `.dvc` indo para o git.
 
+## Gerenciamento de dependências
+
+O projeto usa **uv** (não Poetry) como gerenciador de pacotes e de ambiente — é a ferramenta atualmente mais recomendada no ecossistema Python (mesmo time do `ruff`, muito mais rápida que Poetry/pip, suporta nativamente `[dependency-groups]` do PEP 735). O briefing permite "Poetry ou uv"; uv foi a escolha feita aqui.
+
+- `pyproject.toml` na raiz define o projeto como pacote instalável em layout `src/` (`src/tech_challenge_recomendacao/`), com build backend `uv_build`.
+- `requires-python = ">=3.13"` — alinhado à versão usada no desenvolvimento (3.13.7).
+- Dependências de produção em `[project.dependencies]`: `torch`, `scikit-learn`, `mlflow`, `dvc`, `pandas`, `numpy`, `pydantic`, `pydantic-settings`.
+- Dependências de desenvolvimento em `[dependency-groups.dev]` (não `[project.optional-dependencies]` — grupos de dev não devem ser extras instaláveis publicamente): `pytest`, `pytest-cov`, `ruff`, `pre-commit`.
+- `uv.lock` é o lock file — **sempre commitado**, deve ser regenerado (`uv lock`) sempre que dependências mudarem.
+- Ao adicionar/remover dependências, prefira `uv add <pacote>` / `uv remove <pacote>` a editar o `pyproject.toml` manualmente, para manter `pyproject.toml` e `uv.lock` sincronizados.
+- Configuração de `ruff` (`line-length = 100`, `target-version = "py313"`, `select = ["E", "F", "I"]`) e de `pytest` (`testpaths = ["tests"]`, coverage em `src/`) já estão em `pyproject.toml`.
+
 ## Convenções obrigatórias do repositório
 
-- `pyproject.toml` gerenciado com Poetry (ou uv), com dependências de produção (pytorch, scikit-learn, mlflow, dvc) e de desenvolvimento (pytest, ruff) separadas. O lock file deve ser commitado.
 - `.dockerignore`, `.gitignore`, `.env.example` presentes; configurações externalizadas via `.env` + Pydantic Settings (sem configuração hardcoded).
 - Histórico de commits semântico (ex.: Conventional Commits).
 - Clean code: funções ≤ 20 linhas, nomes descritivos, SOLID, type hints em todas as funções públicas, docstrings no estilo Google.
@@ -67,14 +78,15 @@ Cada stage deve ser executável de ponta a ponta via `dvc repro`. Os dados são 
 
 O stage `train` registra params, métricas e artefatos no MLflow a cada run (≥ 3 runs rastreados esperados), e o melhor modelo é promovido através do MLflow Model Registry (Staging → Production). Os modelos baseline (Scikit-Learn) devem ser comparados com o MLP em PyTorch usando ≥ 4 métricas.
 
-## Comandos (a serem estabelecidos)
+## Comandos
 
-Ainda não existem comandos de build/lint/test pois nenhum código foi escrito. Assim que o `pyproject.toml` for criado, espera-se o fluxo padrão do Poetry:
-- `poetry install` — deve funcionar de forma limpa em um ambiente novo (este é um critério explícito de avaliação)
-- `poetry run pytest` — suíte de testes (criar testes por módulo em `tests/`)
-- `poetry run ruff check .` — linting, deve estar sem erros
-- `dvc repro` — executa o pipeline completo de dados/treino
-- `docker compose up` — sobe o serviço de treino + servidor MLflow
+- `uv sync` — instala o projeto e todas as dependências (prod + dev) em `.venv/`; deve funcionar de forma limpa em um ambiente novo (critério explícito de avaliação).
+- `uv run pytest` — roda a suíte de testes (ainda não existe; criar testes por módulo em `tests/`).
+- `uv run ruff check .` — linting; deve estar sem erros.
+- `uv run ruff format .` — formatação.
+- `uv add <pacote>` / `uv add --dev <pacote>` — adiciona dependência de produção/dev e atualiza `pyproject.toml` + `uv.lock`.
+- `dvc repro` — ainda não configurado; vai executar o pipeline completo de dados/treino (Etapa 3).
+- `docker compose up` — ainda não configurado; vai subir o serviço de treino + servidor MLflow (Etapa 3).
 
 Atualize esta seção com os comandos reais conforme forem adicionados — não deixe esta seção desatualizada depois que a estrutura do projeto existir.
 
