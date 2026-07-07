@@ -19,7 +19,7 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 
 **Foco:** projeto limpo com padrões de engenharia desde o início.
 
-- [ ] Definir estrutura de projeto com as pastas `src/`, `tests/`, `data/`, `models/`, `configs/`.
+- [x] Definir estrutura de projeto com as pastas `src/`, `tests/`, `data/`, `models/`, `configs/`.
 - [ ] Aplicar naming conventions descritivas e princípios SOLID desde a primeira linha de código.
 - [ ] Implementar pelo menos 1 design pattern GoF de forma significativa:
   - **Factory** para criação/instanciação dos modelos, e/ou
