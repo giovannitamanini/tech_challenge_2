@@ -6,6 +6,14 @@ Este arquivo fornece orientações ao Claude Code (claude.ai/code) para trabalha
 
 Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, comentários de código, docstrings, nomes de variáveis/funções/classes, documentação (README, Model Card etc.), mensagens de log e qualquer texto voltado ao usuário. A única exceção são palavras reservadas e sintaxe das linguagens de programação e bibliotecas (ex.: `class`, `def`, `import`, `return`, nomes de parâmetros exigidos por frameworks como `self`, `forward`, `__init__`), que naturalmente permanecem em inglês por serem parte da linguagem.
 
+## Fluxo de trabalho com git
+
+- Remote `origin`: https://github.com/giovannitamanini/tech_challenge_2 — `main` já está publicado lá e é a branch trunk.
+- **A partir de agora, nenhum trabalho novo é commitado direto em `main`.** Cada unidade de trabalho (uma etapa, uma tarefa do `docs/TASKS.md`, uma correção) vai para uma branch própria, criada a partir do `main` atualizado.
+  - Convenção de nome sugerida: `etapaN/descricao-curta` (ex.: `etapa3/dockerfile-multistage`).
+- Fluxo por unidade de trabalho: criar a branch → commitar (sempre com aprovação explícita do usuário antes de cada commit, como já vínhamos fazendo) → `git push -u origin <branch>` → abrir Pull Request de `<branch>` para `main` no GitHub (a CLI `gh` não está instalada nesta máquina; usar a interface web do GitHub, ou o link "Compare & pull request" retornado pelo `git push`) → aguardar revisão/merge antes de seguir para a próxima branch.
+- As Etapas 1 e 2 (commits até `921a804`) foram feitas direto em `main` antes desse fluxo ser definido — isso não precisa ser desfeito retroativamente. A regra vale para todo trabalho novo dali em diante.
+
 ## Status do projeto
 
 Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Ainda não existe código-fonte de aplicação de fato (o pacote em `src/tech_challenge_recomendacao/` só tem o módulo de configurações), Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
