@@ -3,8 +3,12 @@ name = "tech-challenge-recomendacao"
 version = "0.1.0"
 description = "Sistema de recomendação de produtos baseado em comportamento de navegação - PosTech Tech Challenge"
 authors = [
-    { name = "Giovanni Tamanini", email = "giovanni.tnini@gmail.com" }
+    { name = "Giovanni de Aguirre Tamanini", email = "giovanni.tnini@gmail.com" },
+    { name = "Yan Levi Martins Meira" },
+    { name = "Cristiano Lima do Sacramento" },
+    { name = "Marcelo Souza" },
 ]
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "dvc>=3.67.1",
