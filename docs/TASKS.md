@@ -61,9 +61,9 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 - [ ] Criar `docker-compose.yml` com:
   - serviço de treino do modelo;
   - serviço de servidor MLflow.
-- [ ] Rodar `dvc init` no repositório.
-- [ ] Versionar o dataset (`data/`) com DVC (`dvc add`).
-- [ ] Configurar um remote do DVC (local ou S3).
+- [x] Rodar `dvc init` no repositório.
+- [x] Versionar o dataset (`data/`) com DVC (`dvc add`).
+- [x] Configurar um remote do DVC (local ou S3).
 - [ ] Criar o pipeline DVC em `dvc.yaml` com no mínimo 3 stages, seguindo o fluxo:
   1. `preprocess`
   2. `feature_eng`
