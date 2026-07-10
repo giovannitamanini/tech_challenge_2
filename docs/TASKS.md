@@ -56,7 +56,7 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 
 **Foco:** Docker + DVC + MLflow integrados em um pipeline reprodutível.
 
-- [ ] Criar `Dockerfile` multi-stage:
+- [x] Criar `Dockerfile` multi-stage:
   - estágio `builder` — instala dependências;
   - estágio `runtime` — copia apenas o necessário para rodar a aplicação (imagem otimizada/enxuta).
 - [ ] Criar `docker-compose.yml` com:
