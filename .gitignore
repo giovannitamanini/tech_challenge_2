@@ -23,6 +23,7 @@ htmlcov/
 # MLflow / artefatos locais de treino
 mlruns/
 mlartifacts/
+mlflow.db
 
 # Configuração local (segredos/valores específicos do ambiente) — apenas .env.example é commitado
 .env

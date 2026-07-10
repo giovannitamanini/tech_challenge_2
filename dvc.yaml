@@ -1,0 +1,57 @@
+stages:
+  preprocess:
+    cmd: uv run python -m tech_challenge_recomendacao.dados.preprocessamento
+    deps:
+      - src/tech_challenge_recomendacao/dados/preprocessamento.py
+      - src/tech_challenge_recomendacao/parametros.py
+      - data/raw_data/ratings.csv
+    params:
+      - configs/params.yaml:
+          - preprocessamento
+    outs:
+      - data/processed_data/interacoes.parquet
+
+  feature_eng:
+    cmd: uv run python -m tech_challenge_recomendacao.dados.engenharia_features
+    deps:
+      - src/tech_challenge_recomendacao/dados/engenharia_features.py
+      - src/tech_challenge_recomendacao/parametros.py
+      - data/processed_data/interacoes.parquet
+    params:
+      - configs/params.yaml:
+          - engenharia_features
+    outs:
+      - data/processed_data/treino.parquet
+      - data/processed_data/teste.parquet
+      - data/processed_data/metadados_features.json
+
+  train:
+    cmd: uv run python -m tech_challenge_recomendacao.treino.treinar
+    deps:
+      - src/tech_challenge_recomendacao/treino/treinar.py
+      - src/tech_challenge_recomendacao/modelos/base.py
+      - src/tech_challenge_recomendacao/modelos/fabrica.py
+      - src/tech_challenge_recomendacao/modelos/fatoracao_matricial.py
+      - src/tech_challenge_recomendacao/modelos/checkpoint.py
+      - src/tech_challenge_recomendacao/parametros.py
+      - data/processed_data/treino.parquet
+      - data/processed_data/metadados_features.json
+    params:
+      - configs/params.yaml:
+          - treino
+    outs:
+      - models/modelo_recomendador.pt
+    metrics:
+      - data/processed_data/metricas_treino.json:
+          cache: false
+
+  evaluate:
+    cmd: uv run python -m tech_challenge_recomendacao.avaliacao.avaliar
+    deps:
+      - src/tech_challenge_recomendacao/avaliacao/avaliar.py
+      - src/tech_challenge_recomendacao/modelos/checkpoint.py
+      - data/processed_data/teste.parquet
+      - models/modelo_recomendador.pt
+    metrics:
+      - data/processed_data/metricas_avaliacao.json:
+          cache: false

@@ -16,11 +16,11 @@ Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, 
 
 ## Status do projeto
 
-Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Na Etapa 3, `dvc init` já foi rodado, `data/raw_data/` já é versionado via DVC (`data/raw_data.dvc`) com um remote local configurado (`.dvc/config`, pasta `dvc-storage/` fora do git — ver seção "Dados (DVC)" no `README.md`), mas o pipeline `dvc.yaml` (stages `preprocess`/`feature_eng`/`train`/`evaluate`) ainda não existe. Ainda não existe código-fonte de aplicação de fato (o pacote em `src/tech_challenge_recomendacao/` só tem o módulo de configurações) nem Dockerfile. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
+Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Na Etapa 3, `dvc init` já foi rodado, `data/raw_data/` já é versionado via DVC (`data/raw_data.dvc`) com um remote local configurado (`.dvc/config`, pasta `dvc-storage/` fora do git — ver seção "Dados (DVC)" no `README.md`), e o pipeline `dvc.yaml` com os 4 stages (`preprocess` → `feature_eng` → `train` → `evaluate`, em `src/tech_challenge_recomendacao/dados/`, `modelos/`, `treino/` e `avaliacao/`) já roda ponta a ponta via `dvc repro`, com o stage `train` logando params/métricas/artefatos no MLflow. O modelo usado (`modelos/fatoracao_matricial.py`, uma fatoração matricial embedding-based, escolhido via Factory em `modelos/fabrica.py`) é um baseline simples só para provar o pipeline — a Etapa 4 substitui/expande por um modelo tunado, com early stopping e comparação com baselines Scikit-Learn. Dockerfile e `docker-compose.yml` ainda não existem. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
 
 `data/raw_data/` e `data/processed_data/` (dados reais, não os ponteiros `.dvc`) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados diretamente no git.
 
-**Limitação conhecida:** o remote DVC configurado atualmente (`dvc-storage/`) é uma pasta local fora do repositório e do git — não é compartilhado automaticamente entre integrantes do grupo. Um clone novo do repositório terá o ponteiro `data/raw_data.dvc` mas não os dados reais em `data/raw_data/` até que alguém com acesso a esse remote (ou a um remote compartilhado reconfigurado) rode `dvc pull`. `data/processed_data/` só existe depois que os stages de pré-processamento do pipeline DVC (ainda não implementado) rodarem. Isso é esperado no estágio atual do projeto — não é um bug a corrigir agora.
+**Limitação conhecida:** o remote DVC configurado atualmente (`dvc-storage/`) é uma pasta local fora do repositório e do git — não é compartilhado automaticamente entre integrantes do grupo. Um clone novo do repositório terá o ponteiro `data/raw_data.dvc` mas não os dados reais em `data/raw_data/` até que alguém com acesso a esse remote (ou a um remote compartilhado reconfigurado) rode `dvc pull`. Depois disso, `dvc repro` recria `data/processed_data/` e `models/modelo_recomendador.pt` do zero. Isso é esperado no estágio atual do projeto — não é um bug a corrigir agora.
 
 ## Lista de tarefas
 
@@ -105,15 +105,16 @@ O stage `train` registra params, métricas e artefatos no MLflow a cada run (≥
 
 - `uv sync` — instala o projeto e todas as dependências (prod + dev) em `.venv/`; deve funcionar de forma limpa em um ambiente novo (critério explícito de avaliação).
 - `uv run python scripts/validate_env.py` — valida versão do Python, carregamento do `.env`/Pydantic Settings e existência dos diretórios de dados/modelos.
-- `uv run pytest` — roda a suíte de testes (ainda não existe; criar testes por módulo em `tests/`).
+- `uv run pytest` — roda a suíte de testes (`tests/`; cobre as funções puras de `dados/`, `modelos/` e `parametros.py`).
 - `uv run ruff check .` — linting; deve estar sem erros.
 - `uv run ruff format .` — formatação.
 - `uv run pre-commit install` — instala o git hook local (necessário uma vez por clone; não é versionado).
 - `uv run pre-commit run --all-files` — roda os hooks configurados (ruff check + format) em todo o repositório.
 - `uv add <pacote>` / `uv add --dev <pacote>` — adiciona dependência de produção/dev e atualiza `pyproject.toml` + `uv.lock`.
 - `uv run dvc pull` — baixa `data/raw_data/` do remote local configurado (`dvc-storage/`, fora do git — ver "Dados (DVC)" no `README.md`).
-- `uv run dvc push` — envia dados rastreados pelo DVC para o remote local.
-- `dvc repro` — ainda não configurado; vai executar o pipeline completo de dados/treino (Etapa 3, pendente: `dvc.yaml` com os stages `preprocess`/`feature_eng`/`train`/`evaluate`).
+- `uv run dvc push` — envia dados/modelos rastreados pelo DVC para o remote local.
+- `uv run dvc repro` — executa o pipeline completo (`preprocess` → `feature_eng` → `train` → `evaluate`, `dvc.yaml`); precisa de um servidor MLflow acessível em `MLFLOW_TRACKING_URI` (`uv run mlflow server` localmente, ou o serviço do `docker-compose.yml` quando existir).
+- `uv run dvc metrics show` — mostra as métricas dos stages `train`/`evaluate` (`data/processed_data/metricas_*.json`).
 - `docker compose up` — ainda não configurado; vai subir o serviço de treino + servidor MLflow (Etapa 3).
 
 Atualize esta seção com os comandos reais conforme forem adicionados — não deixe esta seção desatualizada depois que a estrutura do projeto existir.
