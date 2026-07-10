@@ -115,13 +115,23 @@ uv run dvc metrics show
 
 ## Docker
 
-O `Dockerfile` é multi-stage: o estágio `builder` instala as dependências (e o próprio pacote) com `uv` em um venv isolado; o estágio `runtime` copia só esse venv, `src/` e `configs/` para uma imagem enxuta (`python:3.13-slim`, sem `uv`/cache de build), rodando como usuário não-root.
+O `Dockerfile` é multi-stage, com três estágios: `builder` instala as dependências (e o próprio pacote) com `uv` em um venv isolado; `runtime` (estágio final/padrão) copia só esse venv, `src/` e `configs/` para uma imagem enxuta (`python:3.13-slim`, sem `uv`/cache de build), rodando como usuário não-root e executando o stage `train` por padrão; `mlflow-server` reaproveita o venv do `builder` (sem `src/`/`configs/`, que não são necessários) para rodar o servidor de tracking do MLflow.
+
+### Uso via `docker-compose` (recomendado)
+
+```bash
+docker compose up --build
+```
+
+Sobe dois serviços: `mlflow` (servidor MLflow em `http://localhost:5000`, com backend SQLite e artefatos persistidos em `./mlflow-data/`, fora do git) e `train` (roda o stage `train`, aguardando o `mlflow` responder saudável antes de iniciar). `data/` e `models/` são montados como volumes a partir do host, então os resultados do treino ficam disponíveis fora do container. `MLFLOW_TRACKING_URI` é definido automaticamente para `http://mlflow:5000` (nome do serviço na rede interna do compose), sobrepondo o valor de `.env`.
+
+### Uso do `Dockerfile` isolado
 
 ```bash
 docker build -t tech-challenge-recomendacao .
 ```
 
-Por padrão o container roda o stage `train` (`python -m tech_challenge_recomendacao.treino.treinar`), lendo/gravando os diretórios de dados e modelos por volume:
+Por padrão builda o estágio `runtime` e roda o stage `train` (`python -m tech_challenge_recomendacao.treino.treinar`), lendo/gravando os diretórios de dados e modelos por volume:
 
 ```bash
 docker run --rm \
@@ -131,7 +141,7 @@ docker run --rm \
   tech-challenge-recomendacao
 ```
 
-> **Nota:** o `docker-compose.yml` (serviço de treino + servidor MLflow) ainda está pendente (Etapa 3). Até lá, `MLFLOW_TRACKING_URI` no `.env` precisa apontar para um servidor MLflow acessível a partir do container (ex.: `http://host.docker.internal:5000` no Docker Desktop, com `uv run mlflow server` rodando no host).
+Nesse modo (sem `docker-compose`), `MLFLOW_TRACKING_URI` no `.env` precisa apontar para um servidor MLflow acessível a partir do container — ex.: `http://host.docker.internal:5000` no Docker Desktop, com `uv run mlflow server` rodando no host. Como o MLflow bloqueia por padrão `Host` headers fora de localhost/IPs privados (proteção contra DNS rebinding), rodar o servidor manualmente assim exige liberar esse host explicitamente: `MLFLOW_SERVER_ALLOWED_HOSTS=localhost:5000,127.0.0.1:5000,host.docker.internal:5000 uv run mlflow server --host 0.0.0.0 --port 5000` (o serviço `mlflow` do `docker-compose.yml` já faz isso automaticamente).
 
 ## Estrutura do projeto
 

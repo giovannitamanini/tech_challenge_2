@@ -24,6 +24,8 @@ htmlcov/
 mlruns/
 mlartifacts/
 mlflow.db
+# Backend store sqlite + artifact root do serviço `mlflow` do docker-compose
+/mlflow-data/
 
 # Configuração local (segredos/valores específicos do ambiente) — apenas .env.example é commitado
 .env
