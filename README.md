@@ -4,6 +4,30 @@ Sistema de recomendação de produtos baseado no comportamento de navegação do
 
 > Este README cobre a configuração do ambiente de desenvolvimento. As instruções completas de uso (treino, pipeline DVC, Docker) serão adicionadas conforme as próximas etapas do projeto forem concluídas — ver o checklist completo em [`docs/TASKS.md`](docs/TASKS.md).
 
+## Primeira vez rodando o projeto (resumo)
+
+Sequência completa para quem acabou de clonar o repositório e quer chegar até a stack rodando em Docker. Cada passo é detalhado nas seções abaixo.
+
+```bash
+git clone <url-do-repositorio>
+cd tech_challenge_2
+
+uv sync
+uv run pre-commit install
+cp .env.example .env
+
+uv run dvc pull                      # restaura data/raw_data/ — ver "Dados (DVC)"
+
+docker compose up --build mlflow -d  # sobe só o MLflow, para o `dvc repro` logar nele
+uv run dvc repro                     # preprocess -> feature_eng -> train -> evaluate
+uv run dvc metrics show
+docker compose down
+
+docker compose up --build            # stack completa: mlflow + train, já com os dados prontos
+```
+
+> **Atenção ao `dvc pull`:** só funciona se você tiver acesso ao remote local `dvc-storage/` (ver aviso na seção "Dados (DVC)"). Sem isso, é preciso obter `data/raw_data/` por outro meio antes de continuar.
+
 ## Pré-requisitos
 
 - [Python 3.13+](https://www.python.org/downloads/)
@@ -93,7 +117,13 @@ preprocess → feature_eng → train → evaluate
 
 Os hiperparâmetros de cada stage ficam em [`configs/params.yaml`](configs/params.yaml).
 
-O stage `train` precisa de um servidor MLflow acessível em `MLFLOW_TRACKING_URI` (`.env`). Para rodar localmente antes do `docker-compose.yml` existir (Etapa 3, ainda pendente):
+O stage `train` precisa de um servidor MLflow acessível em `MLFLOW_TRACKING_URI` (`.env`). Forma mais simples: subir só o serviço `mlflow` do `docker-compose.yml` (`http://localhost:5000`, já compatível com o `MLFLOW_TRACKING_URI` padrão do `.env.example`):
+
+```bash
+docker compose up --build mlflow -d
+```
+
+Alternativa sem Docker — rodar o servidor diretamente na máquina:
 
 ```bash
 uv run mlflow server --host 127.0.0.1 --port 5000
@@ -124,6 +154,8 @@ docker compose up --build
 ```
 
 Sobe dois serviços: `mlflow` (servidor MLflow em `http://localhost:5000`, com backend SQLite e artefatos persistidos em `./mlflow-data/`, fora do git) e `train` (roda o stage `train`, aguardando o `mlflow` responder saudável antes de iniciar). `data/` e `models/` são montados como volumes a partir do host, então os resultados do treino ficam disponíveis fora do container. `MLFLOW_TRACKING_URI` é definido automaticamente para `http://mlflow:5000` (nome do serviço na rede interna do compose), sobrepondo o valor de `.env`.
+
+> **Importante:** o serviço `train` executa só o stage `train` (`python -m tech_challenge_recomendacao.treino.treinar`), **não** o pipeline `dvc.yaml` inteiro. Ele espera que `data/processed_data/treino.parquet`, `data/processed_data/metadados_features.json` e (para o `evaluate`, fora do compose) `data/processed_data/teste.parquet` já existam. Rode `uv run dvc repro` antes de subir a stack completa (ver seção "Primeira vez rodando o projeto" e "Pipeline (DVC + MLflow)") — subir só o `docker compose up --build` num clone novo, sem isso, falha por faltar esses arquivos.
 
 ### Uso do `Dockerfile` isolado
 
