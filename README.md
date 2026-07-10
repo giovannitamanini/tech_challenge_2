@@ -64,7 +64,19 @@ uv run python scripts/validate_env.py
 
 Verifica a versão do Python, o carregamento correto das configurações (`.env`/Pydantic Settings) e a existência dos diretórios de dados e modelos. Termina com código de saída `0` em caso de sucesso.
 
-> **Nota:** como o dataset (`data/`) é versionado via DVC e ainda não via git, um clone novo do repositório não terá `data/raw_data/` nem `data/processed_data/` até que o pipeline DVC seja configurado (Etapa 3) — nesse caso o script indicará essas pastas como não encontradas. Isso é esperado no estágio atual do projeto.
+> **Nota:** o dataset bruto (`data/raw_data/`) já é versionado via DVC (ver seção "Dados (DVC)" abaixo). `data/processed_data/` só existe depois que os stages de pré-processamento do pipeline DVC rodarem (ainda não implementados) — até lá o script indicará essa pasta como não encontrada.
+
+## Dados (DVC)
+
+O dataset bruto (`data/raw_data/`) é versionado com [DVC](https://dvc.org/), não diretamente pelo git — apenas o ponteiro `data/raw_data.dvc` é commitado.
+
+```bash
+uv run dvc pull
+```
+
+Baixa `data/raw_data/` a partir do remote configurado em `.dvc/config` (`localremote`).
+
+> **Nota:** o remote configurado atualmente é uma pasta local (`../dvc-storage`, fora do repositório e fora do git), útil para desenvolvimento na mesma máquina onde os dados foram adicionados. Ele **não é compartilhado automaticamente entre integrantes do grupo** — cada pessoa precisa ter os dados nessa pasta (copiando-a manualmente ou reconfigurando o remote para um local compartilhado, ex. uma pasta de rede ou um bucket S3) para que `dvc pull` funcione. Sem isso, quem clonar o repositório do zero precisa obter `data/raw_data/` por fora e rodar `uv run dvc add data/raw_data && uv run dvc commit` para realinhar o cache local com o ponteiro já commitado.
 
 ## Estrutura do projeto
 

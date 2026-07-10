@@ -16,11 +16,11 @@ Tudo neste projeto deve ser feito em português do Brasil: mensagens de commit, 
 
 ## Status do projeto
 
-Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Ainda não existe código-fonte de aplicação de fato (o pacote em `src/tech_challenge_recomendacao/` só tem o módulo de configurações), Dockerfile ou pipeline DVC. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
+Este repositório contém a lista de tarefas da atividade (`docs/TASKS.md`, PosTech "Tech Challenge") e o dataset bruto em `data/`. O repositório git local já foi inicializado, a estrutura de pastas base (`src/`, `tests/`, `models/`, `configs/`, além de `data/`) já foi criada, e a Etapa 2 (`pyproject.toml`/`uv.lock`, configurações via `.env`/Pydantic Settings, `scripts/validate_env.py`) está completa e verificada (ver `docs/evidencias/instalacao_limpa_etapa2.md`). Na Etapa 3, `dvc init` já foi rodado, `data/raw_data/` já é versionado via DVC (`data/raw_data.dvc`) com um remote local configurado (`.dvc/config`, pasta `dvc-storage/` fora do git — ver seção "Dados (DVC)" no `README.md`), mas o pipeline `dvc.yaml` (stages `preprocess`/`feature_eng`/`train`/`evaluate`) ainda não existe. Ainda não existe código-fonte de aplicação de fato (o pacote em `src/tech_challenge_recomendacao/` só tem o módulo de configurações) nem Dockerfile. Qualquer trabalho futuro aqui consiste em construir o projeto do zero conforme a especificação abaixo — não assuma que convenções ou comandos existem até que tenham sido de fato criados neste repositório.
 
-`data/` (dataset bruto) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados.
+`data/raw_data/` e `data/processed_data/` (dados reais, não os ponteiros `.dvc`) e qualquer arquivo `*.pdf` estão no `.gitignore` e não devem ser commitados diretamente no git.
 
-**Limitação conhecida:** como `data/` é ignorado pelo git, um clone novo do repositório **não tem** `data/raw_data/` nem `data/processed_data/` até que o pipeline DVC (Etapa 3) seja configurado e um `dvc pull` seja rodado. Isso é esperado no estágio atual do projeto — não é um bug a corrigir agora.
+**Limitação conhecida:** o remote DVC configurado atualmente (`dvc-storage/`) é uma pasta local fora do repositório e do git — não é compartilhado automaticamente entre integrantes do grupo. Um clone novo do repositório terá o ponteiro `data/raw_data.dvc` mas não os dados reais em `data/raw_data/` até que alguém com acesso a esse remote (ou a um remote compartilhado reconfigurado) rode `dvc pull`. `data/processed_data/` só existe depois que os stages de pré-processamento do pipeline DVC (ainda não implementado) rodarem. Isso é esperado no estágio atual do projeto — não é um bug a corrigir agora.
 
 ## Lista de tarefas
 
@@ -52,7 +52,7 @@ O dataset escolhido é o **MovieLens ml-32m** (GroupLens/University of Minnesota
 
 Licença: uso apenas para fins de pesquisa/acadêmicos, sem uso comercial sem autorização do GroupLens Research Project, e com citação obrigatória do paper (Harper & Konstan, 2015) em qualquer publicação — ver `data/raw_data/README.txt` para o texto completo.
 
-**Importante sobre versionamento:** `data/` é o local correto para os dados (consistente com a estrutura de projeto exigida no spec), mas dado o tamanho de `data/raw_data/ratings.csv` (~870 MB) esses arquivos **não devem ser commitados no git** — devem ser versionados via DVC (`dvc add data/raw_data/...`) assim que o pipeline for inicializado, com `data/` entrando no `.gitignore` e apenas os ponteiros `.dvc` indo para o git.
+**Importante sobre versionamento:** `data/` é o local correto para os dados (consistente com a estrutura de projeto exigida no spec), mas dado o tamanho de `data/raw_data/ratings.csv` (~870 MB) esses arquivos **não devem ser commitados no git** — são versionados via DVC (`data/raw_data.dvc`, já rastreado desde a Etapa 3), com os dados reais entrando no `.gitignore` (via `data/.gitignore`, gerenciado pelo próprio DVC) e apenas os ponteiros `.dvc` indo para o git.
 
 ## Gerenciamento de dependências
 
@@ -111,7 +111,9 @@ O stage `train` registra params, métricas e artefatos no MLflow a cada run (≥
 - `uv run pre-commit install` — instala o git hook local (necessário uma vez por clone; não é versionado).
 - `uv run pre-commit run --all-files` — roda os hooks configurados (ruff check + format) em todo o repositório.
 - `uv add <pacote>` / `uv add --dev <pacote>` — adiciona dependência de produção/dev e atualiza `pyproject.toml` + `uv.lock`.
-- `dvc repro` — ainda não configurado; vai executar o pipeline completo de dados/treino (Etapa 3).
+- `uv run dvc pull` — baixa `data/raw_data/` do remote local configurado (`dvc-storage/`, fora do git — ver "Dados (DVC)" no `README.md`).
+- `uv run dvc push` — envia dados rastreados pelo DVC para o remote local.
+- `dvc repro` — ainda não configurado; vai executar o pipeline completo de dados/treino (Etapa 3, pendente: `dvc.yaml` com os stages `preprocess`/`feature_eng`/`train`/`evaluate`).
 - `docker compose up` — ainda não configurado; vai subir o serviço de treino + servidor MLflow (Etapa 3).
 
 Atualize esta seção com os comandos reais conforme forem adicionados — não deixe esta seção desatualizada depois que a estrutura do projeto existir.
