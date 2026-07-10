@@ -20,13 +20,14 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 **Foco:** projeto limpo com padrões de engenharia desde o início.
 
 - [x] Definir estrutura de projeto com as pastas `src/`, `tests/`, `data/`, `models/`, `configs/`.
-- [ ] Aplicar naming conventions descritivas e princípios SOLID desde a primeira linha de código.
-- [ ] Implementar pelo menos 1 design pattern GoF de forma significativa:
+- [x] Aplicar naming conventions descritivas e princípios SOLID desde a primeira linha de código.
+- [x] Implementar pelo menos 1 design pattern GoF de forma significativa:
   - **Factory** para criação/instanciação dos modelos, e/ou
   - **Strategy** para preprocessors intercambiáveis, e/ou
   - **Template Method** para os loops de treino.
-- [ ] Adicionar type hints em todas as funções públicas.
-- [ ] Adicionar docstrings no estilo Google em todas as funções públicas.
+  - Implementado: Factory (`modelos/fabrica.py`, função `criar_modelo`), usada pelo stage `train` e reutilizável na Etapa 4 para novas arquiteturas.
+- [x] Adicionar type hints em todas as funções públicas.
+- [x] Adicionar docstrings no estilo Google em todas as funções públicas.
 - [x] Configurar `ruff` rodando sem erros.
 - [x] Configurar pre-commit hooks que executam o `ruff` automaticamente.
 
@@ -64,13 +65,14 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 - [x] Rodar `dvc init` no repositório.
 - [x] Versionar o dataset (`data/`) com DVC (`dvc add`).
 - [x] Configurar um remote do DVC (local ou S3).
-- [ ] Criar o pipeline DVC em `dvc.yaml` com no mínimo 3 stages, seguindo o fluxo:
+- [x] Criar o pipeline DVC em `dvc.yaml` com no mínimo 3 stages, seguindo o fluxo:
   1. `preprocess`
   2. `feature_eng`
   3. `train`
   4. `evaluate`
-- [ ] Garantir que cada stage é executável de ponta a ponta via `dvc repro`.
-- [ ] Instrumentar o stage `train` para logar no MLflow, a cada run: parâmetros, métricas e artefatos.
+- [x] Garantir que cada stage é executável de ponta a ponta via `dvc repro`.
+- [x] Instrumentar o stage `train` para logar no MLflow, a cada run: parâmetros, métricas e artefatos.
+  - Modelo atual (`modelos/fatoracao_matricial.py`) é um baseline simples de fatoração matricial (embedding-based), só para provar o pipeline ponta a ponta — a Etapa 4 substitui/expande por um modelo tunado, com early stopping e comparação com baselines Scikit-Learn.
 
 **Entregável da etapa:** pipeline reprodutível via `dvc repro` + Docker funcional.
 

@@ -1,0 +1,23 @@
+# Parâmetros do pipeline DVC (dvc.yaml), agrupados por stage.
+# A semente aleatória é única e vem de `Configuracoes` (.env), não é duplicada aqui.
+
+preprocessamento:
+  # Nº de linhas de ratings.csv usadas via amostragem aleatória reprodutível.
+  # `null` usa o dataset completo (~32M linhas) — mais lento, mas real.
+  tamanho_amostra: 200000
+  min_avaliacoes_por_usuario: 5
+  min_avaliacoes_por_filme: 5
+
+engenharia_features:
+  proporcao_teste: 0.2
+
+treino:
+  tipo_modelo: fatoracao_matricial
+  dimensao_embedding: 16
+  taxa_aprendizado: 0.01
+  epocas: 5
+  tamanho_lote: 1024
+
+# O stage `evaluate` ainda não tem parâmetros configuráveis (só RMSE/MAE no
+# conjunto de teste). Métricas de ranking (ex.: precisão@k) e seus parâmetros
+# entram na Etapa 4, junto com a comparação com baselines.

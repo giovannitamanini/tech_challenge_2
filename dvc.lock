@@ -1,0 +1,136 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: uv run python -m tech_challenge_recomendacao.dados.preprocessamento
+    deps:
+    - path: data/raw_data/ratings.csv
+      hash: md5
+      md5: cf12b74f9ad4b94a011f079e26d4270a
+      size: 877076222
+    - path: src/tech_challenge_recomendacao/dados/preprocessamento.py
+      hash: md5
+      md5: df8a14ab244e6023ece902d348d382cd
+      size: 4245
+    - path: src/tech_challenge_recomendacao/parametros.py
+      hash: md5
+      md5: 08ce90b508b4212542743fbca4388f91
+      size: 1456
+    params:
+      configs/params.yaml:
+        preprocessamento:
+          tamanho_amostra: 200000
+          min_avaliacoes_por_usuario: 5
+          min_avaliacoes_por_filme: 5
+    outs:
+    - path: data/processed_data/interacoes.parquet
+      hash: md5
+      md5: 9c27e4254ba96c0a3f954ffe970bfdfa
+      size: 281674
+  feature_eng:
+    cmd: uv run python -m tech_challenge_recomendacao.dados.engenharia_features
+    deps:
+    - path: data/processed_data/interacoes.parquet
+      hash: md5
+      md5: 9c27e4254ba96c0a3f954ffe970bfdfa
+      size: 281674
+    - path: src/tech_challenge_recomendacao/dados/engenharia_features.py
+      hash: md5
+      md5: f6f88f22470049e146e1a85b5ba6c04c
+      size: 3031
+    - path: src/tech_challenge_recomendacao/parametros.py
+      hash: md5
+      md5: 08ce90b508b4212542743fbca4388f91
+      size: 1456
+    params:
+      configs/params.yaml:
+        engenharia_features:
+          proporcao_teste: 0.2
+    outs:
+    - path: data/processed_data/metadados_features.json
+      hash: md5
+      md5: c130acef1daf40cd3f9019a71bfc98e7
+      size: 47
+    - path: data/processed_data/teste.parquet
+      hash: md5
+      md5: 702206bb84655f9c0005af11a3bb4dc7
+      size: 85662
+    - path: data/processed_data/treino.parquet
+      hash: md5
+      md5: c1b3f10ba9593e93beaeef9e3e2edb94
+      size: 236500
+  train:
+    cmd: uv run python -m tech_challenge_recomendacao.treino.treinar
+    deps:
+    - path: data/processed_data/metadados_features.json
+      hash: md5
+      md5: c130acef1daf40cd3f9019a71bfc98e7
+      size: 47
+    - path: data/processed_data/treino.parquet
+      hash: md5
+      md5: c1b3f10ba9593e93beaeef9e3e2edb94
+      size: 236500
+    - path: src/tech_challenge_recomendacao/modelos/base.py
+      hash: md5
+      md5: c481d62bdec12a32e9df48c907c8d1ff
+      size: 694
+    - path: src/tech_challenge_recomendacao/modelos/checkpoint.py
+      hash: md5
+      md5: ebf17dc00c9f5e6e45e0003aff0e0530
+      size: 1716
+    - path: src/tech_challenge_recomendacao/modelos/fabrica.py
+      hash: md5
+      md5: a65c7d14ef83dba7324406b54416c45a
+      size: 1562
+    - path: src/tech_challenge_recomendacao/modelos/fatoracao_matricial.py
+      hash: md5
+      md5: 0185ef79185848b596237334130af569
+      size: 2087
+    - path: src/tech_challenge_recomendacao/parametros.py
+      hash: md5
+      md5: 08ce90b508b4212542743fbca4388f91
+      size: 1456
+    - path: src/tech_challenge_recomendacao/treino/treinar.py
+      hash: md5
+      md5: 5c52653a426793ed55af8fd67b2b5028
+      size: 7074
+    params:
+      configs/params.yaml:
+        treino:
+          tipo_modelo: fatoracao_matricial
+          dimensao_embedding: 16
+          taxa_aprendizado: 0.01
+          epocas: 5
+          tamanho_lote: 1024
+    outs:
+    - path: data/processed_data/metricas_treino.json
+      hash: md5
+      md5: ff314dad74de540f5c47607e58e88981
+      size: 46
+    - path: models/modelo_recomendador.pt
+      hash: md5
+      md5: 3ab656b7e322dc4e6f0dca3bb2786e06
+      size: 952733
+  evaluate:
+    cmd: uv run python -m tech_challenge_recomendacao.avaliacao.avaliar
+    deps:
+    - path: data/processed_data/teste.parquet
+      hash: md5
+      md5: 702206bb84655f9c0005af11a3bb4dc7
+      size: 85662
+    - path: models/modelo_recomendador.pt
+      hash: md5
+      md5: 3ab656b7e322dc4e6f0dca3bb2786e06
+      size: 952733
+    - path: src/tech_challenge_recomendacao/avaliacao/avaliar.py
+      hash: md5
+      md5: b90f69c4d2780fe66b3acfb1c0f9cb09
+      size: 2404
+    - path: src/tech_challenge_recomendacao/modelos/checkpoint.py
+      hash: md5
+      md5: ebf17dc00c9f5e6e45e0003aff0e0530
+      size: 1716
+    outs:
+    - path: data/processed_data/metricas_avaliacao.json
+      hash: md5
+      md5: d2901c1b3ca22c030679f021df38a546
+      size: 64
