@@ -1,0 +1,31 @@
+services:
+  mlflow:
+    build:
+      context: .
+      target: mlflow-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow-data:/app/mlflow-data
+    environment:
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,localhost:5000,127.0.0.1:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  train:
+    build:
+      context: .
+      target: runtime
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models

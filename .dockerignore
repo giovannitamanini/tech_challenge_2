@@ -12,6 +12,7 @@ dvc-storage/
 mlruns/
 mlartifacts/
 mlflow.db
+/mlflow-data/
 
 # Ambiente virtual e caches do Python/uv
 .venv/

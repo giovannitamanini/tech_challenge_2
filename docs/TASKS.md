@@ -59,7 +59,7 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 - [x] Criar `Dockerfile` multi-stage:
   - estágio `builder` — instala dependências;
   - estágio `runtime` — copia apenas o necessário para rodar a aplicação (imagem otimizada/enxuta).
-- [ ] Criar `docker-compose.yml` com:
+- [x] Criar `docker-compose.yml` com:
   - serviço de treino do modelo;
   - serviço de servidor MLflow.
 - [x] Rodar `dvc init` no repositório.
