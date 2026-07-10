@@ -16,7 +16,7 @@ uv sync
 uv run pre-commit install
 cp .env.example .env
 
-uv run dvc pull                      # restaura data/raw_data/ — ver "Dados (DVC)"
+# data/raw_data/ já vem do próprio git clone — não precisa de dvc pull
 
 docker compose up --build mlflow -d  # sobe só o MLflow, para o `dvc repro` logar nele
 uv run dvc repro                     # preprocess -> feature_eng -> train -> evaluate
@@ -25,8 +25,6 @@ docker compose down
 
 docker compose up --build            # stack completa: mlflow + train, já com os dados prontos
 ```
-
-> **Atenção ao `dvc pull`:** só funciona se você tiver acesso ao remote local `dvc-storage/` (ver aviso na seção "Dados (DVC)"). Sem isso, é preciso obter `data/raw_data/` por outro meio antes de continuar.
 
 ## Pré-requisitos
 
@@ -88,19 +86,21 @@ uv run python scripts/validate_env.py
 
 Verifica a versão do Python, o carregamento correto das configurações (`.env`/Pydantic Settings) e a existência dos diretórios de dados e modelos. Termina com código de saída `0` em caso de sucesso.
 
-> **Nota:** o dataset bruto (`data/raw_data/`) já é versionado via DVC (ver seção "Dados (DVC)" abaixo). `data/processed_data/` só existe depois de rodar o pipeline (ver seção "Pipeline (DVC + MLflow)" abaixo) — até lá o script indicará essa pasta como não encontrada.
+> **Nota:** o dataset bruto (`data/raw_data/`) vem commitado direto no git — nenhum passo extra é necessário. `data/processed_data/` só existe depois de rodar o pipeline (ver seção "Pipeline (DVC + MLflow)" abaixo) — até lá o script indicará essa pasta como não encontrada.
 
 ## Dados (DVC)
 
-O dataset bruto (`data/raw_data/`) é versionado com [DVC](https://dvc.org/), não diretamente pelo git — apenas o ponteiro `data/raw_data.dvc` é commitado.
+O dataset bruto (`data/raw_data/`) é a amostra **MovieLens ml-latest-small** (~3 MB) e é commitado direto no git — qualquer `git clone` já o traz, sem precisar de DVC.
+
+O [DVC](https://dvc.org/) é usado para versionar os **artefatos gerados pelo pipeline** (`data/processed_data/`, `models/modelo_recomendador.pt`), não o dataset bruto:
 
 ```bash
 uv run dvc pull
 ```
 
-Baixa `data/raw_data/` a partir do remote configurado em `.dvc/config` (`localremote`).
+Baixa esses artefatos a partir do remote configurado em `.dvc/config` (`localremote`), se disponíveis lá.
 
-> **Nota:** o remote configurado atualmente é uma pasta local (`../dvc-storage`, fora do repositório e fora do git), útil para desenvolvimento na mesma máquina onde os dados foram adicionados. Ele **não é compartilhado automaticamente entre integrantes do grupo** — cada pessoa precisa ter os dados nessa pasta (copiando-a manualmente ou reconfigurando o remote para um local compartilhado, ex. uma pasta de rede ou um bucket S3) para que `dvc pull` funcione. Sem isso, quem clonar o repositório do zero precisa obter `data/raw_data/` por fora e rodar `uv run dvc add data/raw_data && uv run dvc commit` para realinhar o cache local com o ponteiro já commitado.
+> **Nota:** o remote configurado atualmente é uma pasta local (`../dvc-storage`, fora do repositório e fora do git), útil para desenvolvimento na mesma máquina onde os artefatos foram gerados. Ele **não é compartilhado automaticamente entre integrantes do grupo** — para obter `data/processed_data/` e `models/modelo_recomendador.pt` sem acesso a esse remote, basta rodar `uv run dvc repro`, que os regenera do zero a partir de `data/raw_data/` (já disponível via git).
 
 ## Pipeline (DVC + MLflow)
 
@@ -186,7 +186,7 @@ src/tech_challenge_recomendacao/
 ├── treino/                # stage `train` (loop de treino + logging no MLflow)
 └── avaliacao/              # stage `evaluate` (métricas no conjunto de teste)
 tests/                            # testes automatizados
-data/raw_data/                    # dataset bruto (MovieLens ml-32m, versionado via DVC)
+data/raw_data/                    # dataset bruto (MovieLens ml-latest-small, commitado direto no git)
 data/processed_data/              # dados processados pelo pipeline (saída do DVC)
 models/                           # modelos treinados (saída do DVC)
 configs/                          # arquivos de configuração declarativos (params.yaml do DVC)

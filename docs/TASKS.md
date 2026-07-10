@@ -9,7 +9,7 @@ Uma empresa de e-commerce precisa de um sistema de recomendação de produtos ba
 - **Atividade em grupo · Obrigatória · Avaliada** (vale 90% da nota de todas as disciplinas da fase).
 - **Entrega obrigatória:** Repositório GitHub + Vídeo de 5 minutos (método STAR).
 - **Entrega opcional (bônus):** Deploy em ambiente de produção em nuvem (AWS, Azure ou GCP).
-- **Dataset:** já definido neste projeto como MovieLens ml-32m (ver seção "Dataset" no `CLAUDE.md`), que atende ao requisito de ≥ 10.000 interações user-item.
+- **Dataset:** já definido neste projeto como MovieLens ml-latest-small (ver seção "Dataset" no `CLAUDE.md`), que atende ao requisito de ≥ 10.000 interações user-item.
 
 As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas no briefing, na ordem em que devem ser executadas. Requisitos que são transversais (valem para o projeto inteiro, não uma etapa específica) estão marcados como tal.
 
@@ -63,7 +63,7 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
   - serviço de treino do modelo;
   - serviço de servidor MLflow.
 - [x] Rodar `dvc init` no repositório.
-- [x] Versionar o dataset (`data/`) com DVC (`dvc add`).
+- [x] Versionar os dados (`data/`) com DVC: dataset bruto (`data/raw_data/`) é pequeno o bastante para ir direto no git; os artefatos gerados pelo pipeline (`data/processed_data/`, `models/`) são versionados via `dvc.yaml`.
 - [x] Configurar um remote do DVC (local ou S3).
 - [x] Criar o pipeline DVC em `dvc.yaml` com no mínimo 3 stages, seguindo o fluxo:
   1. `preprocess`

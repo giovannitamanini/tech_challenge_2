@@ -1,9 +1,10 @@
-# Dataset bruto e processado: versionado via DVC, não diretamente no git.
-# Não ignoramos `data/` inteiro aqui — os ponteiros `*.dvc` (ex.: data/raw_data.dvc)
-# precisam ser rastreados pelo git. O próprio DVC gerencia um `data/.gitignore`
-# com os caminhos de dado real que passam a ser rastreados via cache do DVC.
+# Dataset bruto (data/raw_data/): amostra pequena (ml-latest-small), commitada
+# diretamente no git para que qualquer clone já traga os dados. Os artefatos
+# gerados pelo pipeline DVC (data/processed_data/, models/) continuam versionados
+# só via DVC, não diretamente no git — ver data/processed_data/.gitignore e
+# models/.gitignore, gerenciados pelo próprio DVC.
 
-# Storage do remote local do DVC (fica fora do git; dados reais só existem lá e no cache do DVC)
+# Storage do remote local do DVC (fica fora do git; artefatos do pipeline só existem lá e no cache do DVC)
 /dvc-storage/
 
 # Documentos PDF (specs, referências etc.)
