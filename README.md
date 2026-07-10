@@ -113,6 +113,26 @@ uv run dvc metrics show
 
 > **Nota:** o modelo atual (`FatoracaoMatricial`, uma fatoração matricial embedding-based) é um baseline simples, só para validar o pipeline ponta a ponta — a Etapa 4 treina e ajusta o modelo de fato, compara com baselines Scikit-Learn e registra o melhor no MLflow Model Registry.
 
+## Docker
+
+O `Dockerfile` é multi-stage: o estágio `builder` instala as dependências (e o próprio pacote) com `uv` em um venv isolado; o estágio `runtime` copia só esse venv, `src/` e `configs/` para uma imagem enxuta (`python:3.13-slim`, sem `uv`/cache de build), rodando como usuário não-root.
+
+```bash
+docker build -t tech-challenge-recomendacao .
+```
+
+Por padrão o container roda o stage `train` (`python -m tech_challenge_recomendacao.treino.treinar`), lendo/gravando os diretórios de dados e modelos por volume:
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/models:/app/models" \
+  tech-challenge-recomendacao
+```
+
+> **Nota:** o `docker-compose.yml` (serviço de treino + servidor MLflow) ainda está pendente (Etapa 3). Até lá, `MLFLOW_TRACKING_URI` no `.env` precisa apontar para um servidor MLflow acessível a partir do container (ex.: `http://host.docker.internal:5000` no Docker Desktop, com `uv run mlflow server` rodando no host).
+
 ## Estrutura do projeto
 
 ```
