@@ -61,8 +61,8 @@ def recomendar(
 ) -> RespostaRecomendacoes:
     """Recomenda os `k` filmes com maior nota prevista para o usuário."""
     recomendacoes = [
-        RecomendacaoItem(filme_id=filme_id, nota_prevista=nota)
-        for filme_id, nota in servico.recomendar(usuario_id, k)
+        RecomendacaoItem(filme_id=filme_id, titulo=titulo, nota_prevista=nota)
+        for filme_id, titulo, nota in servico.recomendar(usuario_id, k)
     ]
     return RespostaRecomendacoes(usuario_id=usuario_id, recomendacoes=recomendacoes)
 
@@ -75,7 +75,7 @@ def buscar_filmes_similares(
 ) -> RespostaFilmesSimilares:
     """Busca os `k` filmes mais similares a um filme, via embeddings de item."""
     similares = [
-        FilmeSimilarItem(filme_id=fid, similaridade=sim)
-        for fid, sim in servico.filmes_similares(filme_id, k)
+        FilmeSimilarItem(filme_id=fid, titulo=titulo, similaridade=sim)
+        for fid, titulo, sim in servico.filmes_similares(filme_id, k)
     ]
     return RespostaFilmesSimilares(filme_id=filme_id, similares=similares)

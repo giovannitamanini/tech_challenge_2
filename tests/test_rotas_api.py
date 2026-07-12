@@ -64,6 +64,15 @@ def test_recomendacoes_exclui_filme_ja_visto(servico_recomendacao: ServicoRecome
     assert 100 not in filme_ids
 
 
+def test_recomendacoes_traz_o_titulo_do_filme(servico_recomendacao: ServicoRecomendacao) -> None:
+    """`GET /recomendacoes/{usuario_id}` deve trazer o título de cada filme recomendado."""
+    resposta = _cliente(servico_recomendacao).get("/recomendacoes/10", params={"k": 10})
+
+    corpo = resposta.json()
+    titulos_por_filme = {item["filme_id"]: item["titulo"] for item in corpo["recomendacoes"]}
+    assert titulos_por_filme[200] == "Filme B"
+
+
 def test_recomendacoes_com_usuario_desconhecido_responde_404(
     servico_recomendacao: ServicoRecomendacao,
 ) -> None:
@@ -83,6 +92,15 @@ def test_filmes_similares_exclui_o_proprio_filme(
     filme_ids = {item["filme_id"] for item in corpo["similares"]}
     assert resposta.status_code == 200
     assert 100 not in filme_ids
+
+
+def test_filmes_similares_traz_o_titulo_do_filme(servico_recomendacao: ServicoRecomendacao) -> None:
+    """`GET /filmes/{filme_id}/similares` deve trazer o título de cada filme similar."""
+    resposta = _cliente(servico_recomendacao).get("/filmes/100/similares", params={"k": 10})
+
+    corpo = resposta.json()
+    titulos_por_filme = {item["filme_id"]: item["titulo"] for item in corpo["similares"]}
+    assert titulos_por_filme[200] == "Filme B"
 
 
 def test_filmes_similares_com_filme_desconhecido_responde_404(

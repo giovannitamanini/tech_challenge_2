@@ -55,6 +55,7 @@ class RecomendacaoItem(BaseModel):
     """Um filme recomendado, com a nota prevista."""
 
     filme_id: int
+    titulo: str | None = Field(default=None, description="Título do filme, se conhecido.")
     nota_prevista: float
 
 
@@ -69,6 +70,7 @@ class FilmeSimilarItem(BaseModel):
     """Um filme similar, com o grau de similaridade."""
 
     filme_id: int
+    titulo: str | None = Field(default=None, description="Título do filme, se conhecido.")
     similaridade: float
 
 

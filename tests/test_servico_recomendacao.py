@@ -40,8 +40,17 @@ def test_recomendar_exclui_filmes_ja_avaliados_no_treino(
     """O filme já visto pelo usuário (filme_id 100) não deve aparecer nas recomendações."""
     recomendacoes = servico_recomendacao.recomendar(usuario_id=10, k=10)
 
-    filme_ids = {filme_id for filme_id, _ in recomendacoes}
+    filme_ids = {filme_id for filme_id, _, _ in recomendacoes}
     assert filme_ids == {200, 300, 400}
+
+
+def test_recomendar_traz_o_titulo_do_catalogo(servico_recomendacao: ServicoRecomendacao) -> None:
+    """Filme com título no catálogo deve vir com `titulo` preenchido; sem, com `None`."""
+    recomendacoes = servico_recomendacao.recomendar(usuario_id=10, k=10)
+
+    titulos_por_filme = {filme_id: titulo for filme_id, titulo, _ in recomendacoes}
+    assert titulos_por_filme[200] == "Filme B"
+    assert titulos_por_filme[400] is None  # 400 não está no catálogo sintético
 
 
 def test_recomendar_respeita_k(servico_recomendacao: ServicoRecomendacao) -> None:
@@ -65,7 +74,7 @@ def test_filmes_similares_exclui_o_proprio_filme(
     """O filme de referência não deve aparecer na própria lista de similares."""
     similares = servico_recomendacao.filmes_similares(filme_id=100, k=10)
 
-    filme_ids = {filme_id for filme_id, _ in similares}
+    filme_ids = {filme_id for filme_id, _, _ in similares}
     assert filme_ids == {200, 300, 400}
 
 

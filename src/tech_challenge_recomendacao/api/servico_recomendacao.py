@@ -22,6 +22,7 @@ from tech_challenge_recomendacao.api.erros import (
     UsuarioNaoEncontradoErro,
 )
 from tech_challenge_recomendacao.configuracoes import configuracoes
+from tech_challenge_recomendacao.dados.catalogo_filmes import carregar_catalogo_filmes
 from tech_challenge_recomendacao.dados.mapeamento_ids import MapeamentoIds, carregar_mapeamento
 from tech_challenge_recomendacao.modelos.base import ModeloRecomendador
 from tech_challenge_recomendacao.modelos.capacidades import ExpoeEmbeddingsItem
@@ -48,12 +49,14 @@ class ServicoRecomendacao:
         n_usuarios: int,
         n_filmes: int,
         metricas_avaliacao: dict[str, float] | None,
+        titulos_filmes: dict[int, str],
     ) -> None:
         self._modelo = modelo
         self._usuario_id_para_idx = mapeamento["usuario_id_para_idx"]
         self._filme_id_para_idx = mapeamento["filme_id_para_idx"]
         self._filme_idx_para_id = {idx: id_ for id_, idx in self._filme_id_para_idx.items()}
         self._itens_vistos_por_usuario = itens_vistos_por_usuario
+        self._titulos_filmes = titulos_filmes
         self.tipo_modelo = tipo_modelo
         self.dimensao_embedding = dimensao_embedding
         self.n_usuarios = n_usuarios
@@ -73,6 +76,10 @@ class ServicoRecomendacao:
         if idx is None:
             raise FilmeNaoEncontradoErro(filme_id)
         return idx
+
+    def _titulo_filme(self, filme_id: int) -> str | None:
+        """Título do filme, se conhecido pelo catálogo (`data/raw_data/movies.csv`)."""
+        return self._titulos_filmes.get(filme_id)
 
     def prever_lote(self, pares: list[tuple[int, int]]) -> list[float]:
         """Prevê a nota de cada par (usuario_id, filme_id).
@@ -95,7 +102,7 @@ class ServicoRecomendacao:
             notas = self._modelo(usuarios, filmes)
         return notas.tolist()
 
-    def recomendar(self, usuario_id: int, k: int) -> list[tuple[int, float]]:
+    def recomendar(self, usuario_id: int, k: int) -> list[tuple[int, str | None, float]]:
         """Recomenda os `k` filmes com maior nota prevista para o usuário.
 
         Filmes já avaliados no treino são excluídos das recomendações.
@@ -105,7 +112,7 @@ class ServicoRecomendacao:
             k: Número de filmes a recomendar.
 
         Returns:
-            Lista de `(filme_id, nota_prevista)`, da maior para a menor nota.
+            Lista de `(filme_id, titulo, nota_prevista)`, da maior para a menor nota.
 
         Raises:
             UsuarioNaoEncontradoErro: Se `usuario_id` for desconhecido.
@@ -120,9 +127,14 @@ class ServicoRecomendacao:
             notas[filme_idx] = -torch.inf
         k_efetivo = min(k, self.n_filmes - len(vistos))
         top_k = torch.topk(notas, k=k_efetivo).indices.tolist()
-        return [(self._filme_idx_para_id[idx], notas[idx].item()) for idx in top_k]
 
-    def filmes_similares(self, filme_id: int, k: int) -> list[tuple[int, float]]:
+        resultado = []
+        for idx in top_k:
+            filme_id = self._filme_idx_para_id[idx]
+            resultado.append((filme_id, self._titulo_filme(filme_id), notas[idx].item()))
+        return resultado
+
+    def filmes_similares(self, filme_id: int, k: int) -> list[tuple[int, str | None, float]]:
         """Busca os `k` filmes mais similares, via cosseno entre embeddings de item.
 
         Args:
@@ -130,7 +142,7 @@ class ServicoRecomendacao:
             k: Número de filmes similares a devolver.
 
         Returns:
-            Lista de `(filme_id, similaridade)`, da mais para a menos similar.
+            Lista de `(filme_id, titulo, similaridade)`, da mais para a menos similar.
 
         Raises:
             FilmeNaoEncontradoErro: Se `filme_id` for desconhecido.
@@ -140,15 +152,21 @@ class ServicoRecomendacao:
             raise RecursoNaoSuportadoErro(
                 f"Modelo '{self.tipo_modelo}' não expõe embeddings de item."
             )
-        filme_idx = self._idx_filme(filme_id)
+        filme_idx_referencia = self._idx_filme(filme_id)
         with torch.no_grad():
             embeddings = self._modelo.embeddings_item()
             similaridades = torch.nn.functional.cosine_similarity(
-                embeddings[filme_idx].unsqueeze(0), embeddings
+                embeddings[filme_idx_referencia].unsqueeze(0), embeddings
             )
-        similaridades[filme_idx] = -torch.inf
+        similaridades[filme_idx_referencia] = -torch.inf
         top_k = torch.topk(similaridades, k=min(k, self.n_filmes - 1)).indices.tolist()
-        return [(self._filme_idx_para_id[idx], similaridades[idx].item()) for idx in top_k]
+
+        resultado = []
+        for idx in top_k:
+            filme_id_similar = self._filme_idx_para_id[idx]
+            titulo = self._titulo_filme(filme_id_similar)
+            resultado.append((filme_id_similar, titulo, similaridades[idx].item()))
+        return resultado
 
     def info_modelo(self) -> dict[str, object]:
         """Metadados do modelo carregado, para o endpoint `/modelo/info`."""
@@ -210,6 +228,22 @@ def _carregar_metricas_avaliacao(caminho: Path) -> dict[str, float] | None:
     return json.loads(caminho.read_text(encoding="utf-8"))
 
 
+def _carregar_titulos_filmes(caminho: Path) -> dict[int, str]:
+    """Carrega o catálogo de títulos, se o `feature_eng` já tiver gerado esse artefato.
+
+    Args:
+        caminho: Caminho de `catalogo_filmes.json`.
+
+    Returns:
+        Mapa `filme_id -> título`, ou vazio se o artefato ainda não existir (pipelines
+        executados antes desta funcionalidade existir) — filmes ficam sem título, mas a
+        API continua funcionando normalmente.
+    """
+    if not caminho.exists():
+        return {}
+    return carregar_catalogo_filmes(caminho)
+
+
 def carregar_servico_recomendacao() -> ServicoRecomendacao:
     """Constrói o `ServicoRecomendacao` a partir dos artefatos do pipeline em disco.
 
@@ -236,4 +270,5 @@ def carregar_servico_recomendacao() -> ServicoRecomendacao:
         n_usuarios=metadados_checkpoint["n_usuarios"],
         n_filmes=metadados_checkpoint["n_filmes"],
         metricas_avaliacao=metricas_avaliacao,
+        titulos_filmes=_carregar_titulos_filmes(diretorio_dados / "catalogo_filmes.json"),
     )

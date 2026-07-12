@@ -9,6 +9,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from tech_challenge_recomendacao.configuracoes import configuracoes
+from tech_challenge_recomendacao.dados.catalogo_filmes import (
+    extrair_titulos,
+    salvar_catalogo_filmes,
+)
 from tech_challenge_recomendacao.dados.mapeamento_ids import extrair_mapeamento, salvar_mapeamento
 from tech_challenge_recomendacao.parametros import ParametrosEngenhariaFeatures, carregar_parametros
 
@@ -101,6 +105,9 @@ def main() -> None:
         extrair_mapeamento(codificador_usuarios, codificador_filmes),
         diretorio_dados / "mapeamento_ids.json",
     )
+    caminho_movies = Path(configuracoes.diretorio_dados_brutos) / "movies.csv"
+    caminho_catalogo = diretorio_dados / "catalogo_filmes.json"
+    salvar_catalogo_filmes(extrair_titulos(caminho_movies), caminho_catalogo)
 
     print(
         f"[feature_eng] treino={len(treino)} teste={len(teste)} "

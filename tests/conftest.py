@@ -40,7 +40,15 @@ def mapeamento_exemplo() -> MapeamentoIds:
 
 
 @pytest.fixture
-def servico_recomendacao(mapeamento_exemplo: MapeamentoIds) -> ServicoRecomendacao:
+def titulos_filmes_exemplo() -> dict[int, str]:
+    """Catálogo sintético: só 3 dos 4 filmes têm título (400 fica sem, de propósito)."""
+    return {100: "Filme A", 200: "Filme B", 300: "Filme C"}
+
+
+@pytest.fixture
+def servico_recomendacao(
+    mapeamento_exemplo: MapeamentoIds, titulos_filmes_exemplo: dict[int, str]
+) -> ServicoRecomendacao:
     """`ServicoRecomendacao` com um modelo pequeno, todo em memória (sem tocar disco)."""
     torch.manual_seed(SEMENTE)
     modelo = FatoracaoMatricial(
@@ -56,6 +64,7 @@ def servico_recomendacao(mapeamento_exemplo: MapeamentoIds) -> ServicoRecomendac
         n_usuarios=N_USUARIOS,
         n_filmes=N_FILMES,
         metricas_avaliacao={"rmse": 0.9, "mae": 0.7},
+        titulos_filmes=titulos_filmes_exemplo,
     )
 
 
@@ -71,4 +80,5 @@ def servico_sem_embeddings_item(mapeamento_exemplo: MapeamentoIds) -> ServicoRec
         n_usuarios=N_USUARIOS,
         n_filmes=N_FILMES,
         metricas_avaliacao=None,
+        titulos_filmes={},
     )

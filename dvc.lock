@@ -33,10 +33,18 @@ stages:
       hash: md5
       md5: 635d2a1d4c502e1e2fdf47181d50d4e6
       size: 4573
+    - path: data/raw_data/movies.csv
+      hash: md5
+      md5: bad36313e1e0d26e8a153b2ec67d9fd5
+      size: 2478
+    - path: src/tech_challenge_recomendacao/dados/catalogo_filmes.py
+      hash: md5
+      md5: bbd87494177fbd3ac9246b016fe4d208
+      size: 1764
     - path: src/tech_challenge_recomendacao/dados/engenharia_features.py
       hash: md5
-      md5: a31b141d7a12705fa3382fd555d26df4
-      size: 4203
+      md5: 52201c4941f2bf8cd74c69de84e18cc3
+      size: 4546
     - path: src/tech_challenge_recomendacao/dados/mapeamento_ids.py
       hash: md5
       md5: e66b606a5e3b4c32de0a4566ff1a710b
@@ -50,6 +58,10 @@ stages:
         engenharia_features:
           proporcao_teste: 0.2
     outs:
+    - path: data/processed_data/catalogo_filmes.json
+      hash: md5
+      md5: 5b2302fa47998f86bcd0e38eae435822
+      size: 1935
     - path: data/processed_data/mapeamento_ids.json
       hash: md5
       md5: 98374bc1d02006e2a189c0855a89187c
