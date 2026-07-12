@@ -4,9 +4,10 @@ import torch
 from torch import nn
 
 from tech_challenge_recomendacao.modelos.base import ModeloRecomendador
+from tech_challenge_recomendacao.modelos.capacidades import ExpoeEmbeddingsItem
 
 
-class FatoracaoMatricial(ModeloRecomendador):
+class FatoracaoMatricial(ModeloRecomendador, ExpoeEmbeddingsItem):
     """Prevê a nota como o produto interno de embeddings de usuário e filme, mais vieses.
 
     Attributes:
@@ -47,3 +48,11 @@ class FatoracaoMatricial(ModeloRecomendador):
         ).sum(dim=1)
         vieses = self.vies_usuario(usuario_idx).squeeze(1) + self.vies_filme(filme_idx).squeeze(1)
         return produto_interno + vieses + self.vies_global
+
+    def embeddings_item(self) -> torch.Tensor:
+        """Devolve a tabela de embeddings de filme.
+
+        Returns:
+            Tensor de embeddings, shape `(n_filmes, dimensao_embedding)`.
+        """
+        return self.embedding_filme.weight

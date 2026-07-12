@@ -32,14 +32,19 @@ def salvar_checkpoint(
     torch.save({"state_dict": modelo.state_dict(), "metadados": dict(metadados)}, caminho)
 
 
-def carregar_checkpoint(caminho: Path) -> ModeloRecomendador:
+def carregar_checkpoint(caminho: Path) -> tuple[ModeloRecomendador, MetadadosCheckpoint]:
     """Reconstrói e carrega um modelo salvo por `salvar_checkpoint`.
+
+    Devolve também os metadados de arquitetura: como reconstruir o modelo já exige
+    lê-los do checkpoint, expô-los evita que consumidores que precisem descrever o
+    modelo (ex.: o endpoint `/modelo/info` da API) leiam o mesmo arquivo de novo.
 
     Args:
         caminho: Caminho do arquivo de checkpoint (`.pt`).
 
     Returns:
-        Modelo em modo de avaliação (`eval()`), pronto para inferência.
+        Tupla `(modelo, metadados)` — o modelo em modo de avaliação (`eval()`),
+        pronto para inferência, e os metadados de arquitetura do checkpoint.
     """
     checkpoint = torch.load(caminho, weights_only=False)
     metadados: MetadadosCheckpoint = checkpoint["metadados"]
@@ -51,4 +56,4 @@ def carregar_checkpoint(caminho: Path) -> ModeloRecomendador:
     )
     modelo.load_state_dict(checkpoint["state_dict"])
     modelo.eval()
-    return modelo
+    return modelo, metadados

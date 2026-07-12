@@ -5,16 +5,16 @@ stages:
     deps:
     - path: data/raw_data/ratings.csv
       hash: md5
-      md5: cf12b74f9ad4b94a011f079e26d4270a
-      size: 877076222
+      md5: 75cc38cc1cf9910b15adfe37b65cb4f2
+      size: 30215
     - path: src/tech_challenge_recomendacao/dados/preprocessamento.py
       hash: md5
-      md5: df8a14ab244e6023ece902d348d382cd
-      size: 4245
+      md5: 5dc9a15c5c6d4d8381f5ff27ba6e7afd
+      size: 4355
     - path: src/tech_challenge_recomendacao/parametros.py
       hash: md5
-      md5: 08ce90b508b4212542743fbca4388f91
-      size: 1456
+      md5: 9765f3076dcf2da96ad9377336e06776
+      size: 1512
     params:
       configs/params.yaml:
         preprocessamento:
@@ -24,75 +24,87 @@ stages:
     outs:
     - path: data/processed_data/interacoes.parquet
       hash: md5
-      md5: 9c27e4254ba96c0a3f954ffe970bfdfa
-      size: 281674
+      md5: 635d2a1d4c502e1e2fdf47181d50d4e6
+      size: 4573
   feature_eng:
     cmd: uv run python -m tech_challenge_recomendacao.dados.engenharia_features
     deps:
     - path: data/processed_data/interacoes.parquet
       hash: md5
-      md5: 9c27e4254ba96c0a3f954ffe970bfdfa
-      size: 281674
+      md5: 635d2a1d4c502e1e2fdf47181d50d4e6
+      size: 4573
     - path: src/tech_challenge_recomendacao/dados/engenharia_features.py
       hash: md5
-      md5: f6f88f22470049e146e1a85b5ba6c04c
-      size: 3031
+      md5: a31b141d7a12705fa3382fd555d26df4
+      size: 4203
+    - path: src/tech_challenge_recomendacao/dados/mapeamento_ids.py
+      hash: md5
+      md5: e66b606a5e3b4c32de0a4566ff1a710b
+      size: 2626
     - path: src/tech_challenge_recomendacao/parametros.py
       hash: md5
-      md5: 08ce90b508b4212542743fbca4388f91
-      size: 1456
+      md5: 9765f3076dcf2da96ad9377336e06776
+      size: 1512
     params:
       configs/params.yaml:
         engenharia_features:
           proporcao_teste: 0.2
     outs:
+    - path: data/processed_data/mapeamento_ids.json
+      hash: md5
+      md5: 98374bc1d02006e2a189c0855a89187c
+      size: 1679
     - path: data/processed_data/metadados_features.json
       hash: md5
-      md5: c130acef1daf40cd3f9019a71bfc98e7
-      size: 47
+      md5: cf5a06c9e3d49446d80db8865953bead
+      size: 43
     - path: data/processed_data/teste.parquet
       hash: md5
-      md5: 702206bb84655f9c0005af11a3bb4dc7
-      size: 85662
+      md5: 8b62df661cdf0794fb80fefd223bd602
+      size: 3406
     - path: data/processed_data/treino.parquet
       hash: md5
-      md5: c1b3f10ba9593e93beaeef9e3e2edb94
-      size: 236500
+      md5: 3a48db2087d5fa2a80dcdc23cbf57efb
+      size: 5100
   train:
     cmd: uv run python -m tech_challenge_recomendacao.treino.treinar
     deps:
     - path: data/processed_data/metadados_features.json
       hash: md5
-      md5: c130acef1daf40cd3f9019a71bfc98e7
-      size: 47
+      md5: cf5a06c9e3d49446d80db8865953bead
+      size: 43
     - path: data/processed_data/treino.parquet
       hash: md5
-      md5: c1b3f10ba9593e93beaeef9e3e2edb94
-      size: 236500
+      md5: 3a48db2087d5fa2a80dcdc23cbf57efb
+      size: 5100
     - path: src/tech_challenge_recomendacao/modelos/base.py
       hash: md5
-      md5: c481d62bdec12a32e9df48c907c8d1ff
-      size: 694
+      md5: 71eed7dd7aecb98055431d8be9f22b48
+      size: 717
+    - path: src/tech_challenge_recomendacao/modelos/capacidades.py
+      hash: md5
+      md5: 84afcd2f0fff8a11f6d92b9c5f802759
+      size: 941
     - path: src/tech_challenge_recomendacao/modelos/checkpoint.py
       hash: md5
-      md5: ebf17dc00c9f5e6e45e0003aff0e0530
-      size: 1716
+      md5: b121b4027a3c208e771496061d5cdc4d
+      size: 2154
     - path: src/tech_challenge_recomendacao/modelos/fabrica.py
       hash: md5
-      md5: a65c7d14ef83dba7324406b54416c45a
-      size: 1562
+      md5: 2dcf086d9f2a795f8f0962dd21c134fd
+      size: 1599
     - path: src/tech_challenge_recomendacao/modelos/fatoracao_matricial.py
       hash: md5
-      md5: 0185ef79185848b596237334130af569
-      size: 2087
+      md5: 380efde080c35e664e045f10503d992a
+      size: 2493
     - path: src/tech_challenge_recomendacao/parametros.py
       hash: md5
-      md5: 08ce90b508b4212542743fbca4388f91
-      size: 1456
+      md5: 9765f3076dcf2da96ad9377336e06776
+      size: 1512
     - path: src/tech_challenge_recomendacao/treino/treinar.py
       hash: md5
-      md5: 5c52653a426793ed55af8fd67b2b5028
-      size: 7074
+      md5: 6d4b8fa79e1ec6fea22ee98cf42fa42a
+      size: 7276
     params:
       configs/params.yaml:
         treino:
@@ -104,33 +116,33 @@ stages:
     outs:
     - path: data/processed_data/metricas_treino.json
       hash: md5
-      md5: ff314dad74de540f5c47607e58e88981
-      size: 46
+      md5: 06cb7e5ee21e1a000731ba1c6abffcbe
+      size: 45
     - path: models/modelo_recomendador.pt
       hash: md5
-      md5: 3ab656b7e322dc4e6f0dca3bb2786e06
-      size: 952733
+      md5: 3c701438a45f1790f78bb24d71f6bbf1
+      size: 10589
   evaluate:
     cmd: uv run python -m tech_challenge_recomendacao.avaliacao.avaliar
     deps:
     - path: data/processed_data/teste.parquet
       hash: md5
-      md5: 702206bb84655f9c0005af11a3bb4dc7
-      size: 85662
+      md5: 8b62df661cdf0794fb80fefd223bd602
+      size: 3406
     - path: models/modelo_recomendador.pt
       hash: md5
-      md5: 3ab656b7e322dc4e6f0dca3bb2786e06
-      size: 952733
+      md5: 3c701438a45f1790f78bb24d71f6bbf1
+      size: 10589
     - path: src/tech_challenge_recomendacao/avaliacao/avaliar.py
       hash: md5
-      md5: b90f69c4d2780fe66b3acfb1c0f9cb09
-      size: 2404
+      md5: 1361db8cdd8bcacb1af91a0c02771ae5
+      size: 2476
     - path: src/tech_challenge_recomendacao/modelos/checkpoint.py
       hash: md5
-      md5: ebf17dc00c9f5e6e45e0003aff0e0530
-      size: 1716
+      md5: b121b4027a3c208e771496061d5cdc4d
+      size: 2154
     outs:
     - path: data/processed_data/metricas_avaliacao.json
       hash: md5
-      md5: d2901c1b3ca22c030679f021df38a546
-      size: 64
+      md5: 014ecf2274af3390d53acd934652be6b
+      size: 62

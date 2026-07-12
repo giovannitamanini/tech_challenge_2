@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from tech_challenge_recomendacao.configuracoes import configuracoes
+from tech_challenge_recomendacao.dados.mapeamento_ids import extrair_mapeamento, salvar_mapeamento
 from tech_challenge_recomendacao.parametros import ParametrosEngenhariaFeatures, carregar_parametros
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -16,21 +17,39 @@ sys.stdout.reconfigure(encoding="utf-8")
 COLUNAS_PROCESSADAS = ["usuario_idx", "filme_idx", "rating"]
 
 
-def codificar_ids(avaliacoes: pd.DataFrame) -> pd.DataFrame:
-    """Converte `userId`/`movieId` em índices contíguos 0-based (para embeddings).
+def ajustar_codificadores(avaliacoes: pd.DataFrame) -> tuple[LabelEncoder, LabelEncoder]:
+    """Ajusta um `LabelEncoder` de usuários e outro de filmes a partir das avaliações.
 
     Args:
         avaliacoes: Avaliações limpas, saída do stage `preprocess`.
 
     Returns:
+        Tupla `(codificador_usuarios, codificador_filmes)`, já ajustados (`fit`).
+    """
+    codificador_usuarios = LabelEncoder().fit(avaliacoes["userId"])
+    codificador_filmes = LabelEncoder().fit(avaliacoes["movieId"])
+    return codificador_usuarios, codificador_filmes
+
+
+def codificar_ids(
+    avaliacoes: pd.DataFrame,
+    codificador_usuarios: LabelEncoder,
+    codificador_filmes: LabelEncoder,
+) -> pd.DataFrame:
+    """Converte `userId`/`movieId` em índices contíguos 0-based (para embeddings).
+
+    Args:
+        avaliacoes: Avaliações limpas, saída do stage `preprocess`.
+        codificador_usuarios: `LabelEncoder` de usuários já ajustado.
+        codificador_filmes: `LabelEncoder` de filmes já ajustado.
+
+    Returns:
         DataFrame com as colunas `usuario_idx`, `filme_idx` e `rating`.
     """
-    codificador_usuarios = LabelEncoder()
-    codificador_filmes = LabelEncoder()
     return pd.DataFrame(
         {
-            "usuario_idx": codificador_usuarios.fit_transform(avaliacoes["userId"]),
-            "filme_idx": codificador_filmes.fit_transform(avaliacoes["movieId"]),
+            "usuario_idx": codificador_usuarios.transform(avaliacoes["userId"]),
+            "filme_idx": codificador_filmes.transform(avaliacoes["movieId"]),
             "rating": avaliacoes["rating"].to_numpy(),
         }
     )
@@ -62,7 +81,8 @@ def main() -> None:
     diretorio_dados = Path(configuracoes.diretorio_dados_processados)
 
     avaliacoes = pd.read_parquet(diretorio_dados / "interacoes.parquet")
-    avaliacoes_codificadas = codificar_ids(avaliacoes)
+    codificador_usuarios, codificador_filmes = ajustar_codificadores(avaliacoes)
+    avaliacoes_codificadas = codificar_ids(avaliacoes, codificador_usuarios, codificador_filmes)
     treino, teste = dividir_treino_teste(
         avaliacoes_codificadas, parametros, configuracoes.semente_aleatoria
     )
@@ -76,6 +96,10 @@ def main() -> None:
     }
     (diretorio_dados / "metadados_features.json").write_text(
         json.dumps(metadados, indent=2), encoding="utf-8"
+    )
+    salvar_mapeamento(
+        extrair_mapeamento(codificador_usuarios, codificador_filmes),
+        diretorio_dados / "mapeamento_ids.json",
     )
 
     print(

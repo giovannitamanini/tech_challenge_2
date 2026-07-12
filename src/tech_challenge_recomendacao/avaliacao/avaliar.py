@@ -56,7 +56,7 @@ def main() -> None:
     diretorio_dados = Path(configuracoes.diretorio_dados_processados)
     teste = pd.read_parquet(diretorio_dados / "teste.parquet")
 
-    modelo = carregar_checkpoint(CAMINHO_MODELO)
+    modelo, _ = carregar_checkpoint(CAMINHO_MODELO)
     previsoes = prever_teste(modelo, teste)
     metricas = calcular_metricas(teste["rating"].to_numpy(), previsoes)
 

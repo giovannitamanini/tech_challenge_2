@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "API de Recomendação — Tech Challenge",
+    "description": "Endpoints da API de recomendação (src/tech_challenge_recomendacao/api/). Suba a API antes de testar: uv run uvicorn tech_challenge_recomendacao.api.aplicacao:app --reload",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "usuario_id", "value": "1" },
+    { "key": "filme_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "GET /saude",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/saude", "host": ["{{base_url}}"], "path": ["saude"] }
+      }
+    },
+    {
+      "name": "GET /modelo/info",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/modelo/info", "host": ["{{base_url}}"], "path": ["modelo", "info"] }
+      }
+    },
+    {
+      "name": "POST /previsoes",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pares\": [\n    { \"usuario_id\": {{usuario_id}}, \"filme_id\": {{filme_id}} }\n  ]\n}"
+        },
+        "url": { "raw": "{{base_url}}/previsoes", "host": ["{{base_url}}"], "path": ["previsoes"] }
+      }
+    },
+    {
+      "name": "GET /recomendacoes/{usuario_id}",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/recomendacoes/{{usuario_id}}?k=10",
+          "host": ["{{base_url}}"],
+          "path": ["recomendacoes", "{{usuario_id}}"],
+          "query": [{ "key": "k", "value": "10" }]
+        }
+      }
+    },
+    {
+      "name": "GET /filmes/{filme_id}/similares",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/filmes/{{filme_id}}/similares?k=10",
+          "host": ["{{base_url}}"],
+          "path": ["filmes", "{{filme_id}}", "similares"],
+          "query": [{ "key": "k", "value": "10" }]
+        }
+      }
+    },
+    {
+      "name": "Erros - GET /recomendacoes/999999999 (usuario inexistente, espera 404)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/recomendacoes/999999999",
+          "host": ["{{base_url}}"],
+          "path": ["recomendacoes", "999999999"]
+        }
+      }
+    },
+    {
+      "name": "Erros - GET /filmes/999999999/similares (filme inexistente, espera 404)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/filmes/999999999/similares",
+          "host": ["{{base_url}}"],
+          "path": ["filmes", "999999999", "similares"]
+        }
+      }
+    }
+  ]
+}
