@@ -1,4 +1,5 @@
 [core]
-    remote = localremote
-['remote "localremote"']
-    url = ../dvc-storage
+    remote = s3remote
+['remote "s3remote"']
+    url = s3://tech-challenge-2-894042261721-us-east-1-an/dvcstore
+    region = us-east-1
