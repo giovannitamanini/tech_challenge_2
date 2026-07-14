@@ -125,6 +125,10 @@ Serve o modelo treinado (`models/modelo_recomendador.pt`) via HTTP:
 uv run uvicorn tech_challenge_recomendacao.api.aplicacao:app --reload
 ```
 
+`POST /treino` (ver tabela abaixo) precisa do CLI do Docker disponível onde a API estiver
+rodando — funciona tanto rodando a API localmente (Docker Desktop no host) quanto via
+`docker compose up api` (ver seção "Docker" abaixo).
+
 Endpoints (ver também a coleção Postman em
 [`docs/postman/api-recomendacao.postman_collection.json`](docs/postman/api-recomendacao.postman_collection.json)):
 
@@ -135,6 +139,12 @@ Endpoints (ver também a coleção Postman em
 | POST | `/previsoes` | Prevê a nota de um lote de pares (usuário, filme) |
 | GET | `/recomendacoes/{usuario_id}` | Top-`k` filmes recomendados para um usuário |
 | GET | `/filmes/{filme_id}/similares` | Top-`k` filmes similares a um filme (embeddings) |
+| POST | `/treino` | Dispara o pipeline de treino (`dvc repro`) em background; responde `202` com um `execucao_id`. `409` se já houver um treino em andamento |
+| GET | `/treino/status/{execucao_id}` | Status (`em_execucao`/`concluido`/`falhou`) e métricas da execução, quando concluída |
+
+`POST /treino` dispara o serviço `train` do `docker-compose.yml` como um **container
+separado** (`docker compose run --rm train dvc repro`, pipeline completo), um treino de cada
+vez — ver `api/servico_treino.py` e a seção "Docker" abaixo (Docker-fora-do-Docker).
 
 ## Docker
 
@@ -144,14 +154,25 @@ docker run --rm --env-file .env -v "$(pwd)/data:/app/data" -v "$(pwd)/models:/ap
   tech-challenge-recomendacao   # roda o stage `train` isolado (precisa de MLflow acessível)
 ```
 
-Ou via `docker-compose.yml`, que sobe o MLflow e o treino juntos:
+Ou via `docker-compose.yml`, que sobe MLflow, API e treino juntos:
 
 ```bash
+cp .env.example .env   # defina HOST_PROJECT_DIR (ver comentário no arquivo) antes de subir
 docker compose up --build
 ```
 
-Serviços: `mlflow` (servidor de tracking em `http://localhost:5000`, backend SQLite em
-`./mlflow-data/`) e `train` (stage `train`, aguarda o `mlflow` ficar saudável).
+Serviços:
+- `mlflow` — servidor de tracking em `http://localhost:5000`, backend SQLite em `./mlflow-data/`.
+- `api` — API em `http://localhost:8000` (estágio `api` do `Dockerfile`). `POST /treino`
+  dispara o serviço `train` como um **container irmão** (Docker-fora-do-Docker: o socket do
+  Docker do host é montado em `/var/run/docker.sock` dentro do container da `api`) — API e
+  treino ficam isolados um do outro, sem dependência de processo. Exige `HOST_PROJECT_DIR`
+  configurado corretamente no `.env` (ver comentário lá) para os volumes do `train` resolverem
+  contra o host, não contra o container da `api`.
+- `train` — roda o stage `train` isolado por padrão (`docker compose up`), ou o pipeline
+  completo quando disparado via `docker compose run --rm train dvc repro` (usado pela API).
+
+Ambos `api` e `train` aguardam o `mlflow` ficar saudável antes de subir.
 
 ## Testes e lint
 

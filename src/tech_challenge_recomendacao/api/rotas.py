@@ -7,7 +7,10 @@ Cada rota só traduz entre o schema HTTP e o `ServicoRecomendacao` — erros de 
 
 from fastapi import APIRouter, Depends
 
-from tech_challenge_recomendacao.api.dependencias import obter_servico_recomendacao
+from tech_challenge_recomendacao.api.dependencias import (
+    obter_servico_recomendacao,
+    obter_servico_treino,
+)
 from tech_challenge_recomendacao.api.esquemas import (
     FilmeSimilarItem,
     PrevisaoItem,
@@ -18,8 +21,11 @@ from tech_challenge_recomendacao.api.esquemas import (
     RespostaPrevisoes,
     RespostaRecomendacoes,
     RespostaSaude,
+    RespostaStatusTreino,
+    RespostaTreinoIniciado,
 )
 from tech_challenge_recomendacao.api.servico_recomendacao import ServicoRecomendacao
+from tech_challenge_recomendacao.api.servico_treino import ServicoTreino
 
 roteador = APIRouter()
 
@@ -79,3 +85,22 @@ def buscar_filmes_similares(
         for fid, titulo, sim in servico.filmes_similares(filme_id, k)
     ]
     return RespostaFilmesSimilares(filme_id=filme_id, similares=similares)
+
+
+@roteador.post("/treino", response_model=RespostaTreinoIniciado, status_code=202)
+def iniciar_treino(
+    servico: ServicoTreino = Depends(obter_servico_treino),
+) -> RespostaTreinoIniciado:
+    """Dispara o pipeline de treino (`dvc repro`) em background, um de cada vez."""
+    execucao = servico.iniciar_treino()
+    return RespostaTreinoIniciado(
+        execucao_id=execucao.execucao_id, status="em_execucao", iniciado_em=execucao.iniciado_em
+    )
+
+
+@roteador.get("/treino/status/{execucao_id}", response_model=RespostaStatusTreino)
+def consultar_status_treino(
+    execucao_id: str, servico: ServicoTreino = Depends(obter_servico_treino)
+) -> RespostaStatusTreino:
+    """Consulta o status (e as métricas, se concluída) de uma execução de treino."""
+    return RespostaStatusTreino(**servico.consultar_status(execucao_id))

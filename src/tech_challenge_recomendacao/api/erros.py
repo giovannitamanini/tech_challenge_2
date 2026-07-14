@@ -24,3 +24,19 @@ class FilmeNaoEncontradoErro(Exception):
 
 class RecursoNaoSuportadoErro(Exception):
     """Levantado quando o modelo carregado não suporta a operação pedida."""
+
+
+class TreinoJaEmAndamentoErro(Exception):
+    """Levantado ao tentar iniciar um treino enquanto outro já está em execução."""
+
+    def __init__(self, execucao_id: str) -> None:
+        self.execucao_id = execucao_id
+        super().__init__(f"Já existe um treino em andamento (execução '{execucao_id}').")
+
+
+class ExecucaoTreinoNaoEncontradaErro(Exception):
+    """Levantado quando `execucao_id` não corresponde a nenhuma execução conhecida."""
+
+    def __init__(self, execucao_id: str) -> None:
+        self.execucao_id = execucao_id
+        super().__init__(f"Execução de treino '{execucao_id}' não encontrada.")

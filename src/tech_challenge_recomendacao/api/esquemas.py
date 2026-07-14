@@ -1,5 +1,7 @@
 """DTOs Pydantic de request/response da API de recomendação."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -79,3 +81,28 @@ class RespostaFilmesSimilares(BaseModel):
 
     filme_id: int
     similares: list[FilmeSimilarItem]
+
+
+class RespostaTreinoIniciado(BaseModel):
+    """Resposta de `POST /treino`."""
+
+    execucao_id: str = Field(description="Id da execução (pid do subprocesso do `dvc repro`).")
+    status: str
+    iniciado_em: datetime
+
+
+class RespostaStatusTreino(BaseModel):
+    """Resposta de `GET /treino/status/{execucao_id}`."""
+
+    execucao_id: str
+    status: str = Field(description="`em_execucao`, `concluido` ou `falhou`.")
+    iniciado_em: datetime
+    codigo_saida: int | None = Field(
+        default=None, description="Código de saída do subprocesso, se já tiver terminado."
+    )
+    metricas_treino: dict[str, float | int] | None = Field(
+        default=None, description="Conteúdo de `metricas_treino.json`, se a execução concluiu."
+    )
+    metricas_avaliacao: dict[str, float] | None = Field(
+        default=None, description="Conteúdo de `metricas_avaliacao.json`, se a execução concluiu."
+    )

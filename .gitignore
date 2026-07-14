@@ -24,6 +24,9 @@ htmlcov/
 mlruns/
 mlartifacts/
 mlflow.db
+
+# Log da última execução de treino disparada via POST /treino (api/servico_treino.py)
+data/processed_data/ultima_execucao_treino.log
 # Backend store sqlite + artifact root do serviço `mlflow` do docker-compose
 /mlflow-data/
 

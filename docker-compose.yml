@@ -29,3 +29,32 @@ services:
     volumes:
       - ./data:/app/data
       - ./models:/app/models
+
+  api:
+    build:
+      context: .
+      target: api
+    ports:
+      - "8000:8000"
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      # Socket do Docker do host: dá ao container da API poder de disparar o container
+      # `train` como irmão (Docker-fora-do-Docker), via `POST /treino` (docker compose run).
+      - /var/run/docker.sock:/var/run/docker.sock
+      # O container precisa enxergar o projeto no MESMO caminho absoluto que ele tem no
+      # host: quando a API roda `docker compose run` daqui de dentro, o daemon do Docker
+      # (que roda no host) resolve os volumes relativos do `train` (ex.: `./data`) contra
+      # o diretório de trabalho de quem chamou — que precisa ser, portanto, o caminho real
+      # do host, não um caminho interno deste container. `HOST_PROJECT_DIR` (definido no
+      # `.env`) é esse caminho; sem ele, `docker compose run --rm train ...` dispararia o
+      # container de treino com os volumes errados (ou vazios).
+      - .:${HOST_PROJECT_DIR}
+    working_dir: ${HOST_PROJECT_DIR}
