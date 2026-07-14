@@ -7,9 +7,12 @@ experimentos rastreados no **MLflow**, uma **API FastAPI** para servir recomenda
 empacotamento via **Docker**.
 
 > Progresso detalhado por etapa: [`docs/TASKS.md`](docs/TASKS.md). Estado atual: Etapas 1–3
-> (estrutura, ambiente, containerização/versionamento) concluídas; Etapa 4 (tuning do modelo,
-> comparação com baselines, MLflow Model Registry, Model Card final) em andamento — o modelo
-> presente hoje é um baseline simples só para validar o pipeline ponta a ponta.
+> (estrutura, ambiente, containerização/versionamento) concluídas. Etapa 4: o modelo em
+> produção já é a rede neural (`RedeNeural`, embeddings + MLP + vieses), treinada com early
+> stopping e comparada com 6 baselines Scikit-Learn/estatísticos em 6 métricas (tabela
+> completa em `models/comparacao_modelos.json`) — ver seção "Pipeline" abaixo. Ainda faltam:
+> promoção do modelo no MLflow Model Registry (Staging → Production), Model Card/README
+> finais de entrega e o vídeo STAR.
 
 ## Equipe
 
@@ -93,8 +96,13 @@ uv run dvc push    # envia dados/modelos versionados localmente para o S3
 ## Pipeline (DVC + MLflow)
 
 O pipeline (`dvc.yaml`) tem 4 stages — `preprocess → feature_eng → train → evaluate` — cada um
-executável de ponta a ponta via `dvc repro`. O stage `train` loga parâmetros, métricas e o
-artefato do modelo no MLflow a cada run.
+executável de ponta a ponta via `dvc repro`. `feature_eng` faz um split **temporal por
+usuário** (treino/validação/teste). O stage `train` treina a rede neural (`RedeNeural`) com
+**early stopping** (monitorando RMSE de validação) e loga parâmetros/métricas/artefato no
+MLflow a cada run. O stage `evaluate` compara o modelo treinado com 6 baselines Scikit-Learn/
+estatísticos em 6 métricas, salvando a tabela comparativa completa em
+`models/comparacao_modelos.json` (e as métricas do modelo campeão em
+`data/processed_data/metricas_avaliacao.json`, consumidas pela API).
 
 Precisa de um servidor MLflow acessível na URI configurada em `.env`
 (`MLFLOW_TRACKING_URI`, padrão `http://localhost:5000`):
@@ -171,10 +179,11 @@ métricas. Resultado no conjunto de teste:
 **Achado central:** nenhum modelo vence em tudo — a rede neural lidera na predição de rating
 (RMSE/MAE), enquanto as fatorações de matriz (SVD/NMF) lideram no ranking Top-10. O "melhor
 modelo" depende do objetivo de negócio (regressão de nota vs. ordenação de lista); detalhes
-completos no [relatório técnico](docs/RELATORIO.md). Essa análise serve de base para o modelo
-final da Etapa 4, mas seus números **não** são os do pipeline `src/` em produção hoje — este
-usa uma amostra diferente do dataset (`ml-32m` subamostrado, ver
-[`configs/params.yaml`](configs/params.yaml)) e ainda está em um estágio de baseline simples.
+completos no [relatório técnico](docs/RELATORIO.md). Esta análise virou o modelo em produção
+da Etapa 4 (`modelos/rede_neural.py`) — o pipeline `src/`/DVC/MLflow agora usa o mesmo
+dataset, o mesmo split temporal por usuário e a mesma arquitetura do notebook, então
+`uv run dvc repro` deve reproduzir (mesma seed) números iguais ou muito próximos aos desta
+tabela e do `docs/MODEL_CARD.md`.
 
 ## Documentação
 

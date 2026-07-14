@@ -9,7 +9,7 @@ Uma empresa de e-commerce precisa de um sistema de recomendação de produtos ba
 - **Atividade em grupo · Obrigatória · Avaliada** (vale 90% da nota de todas as disciplinas da fase).
 - **Entrega obrigatória:** Repositório GitHub + Vídeo de 5 minutos (método STAR).
 - **Entrega opcional (bônus):** Deploy em ambiente de produção em nuvem (AWS, Azure ou GCP).
-- **Dataset:** já definido neste projeto como MovieLens ml-32m (ver seção "Dataset" no `CLAUDE.md`), que atende ao requisito de ≥ 10.000 interações user-item.
+- **Dataset:** já definido neste projeto como MovieLens ml-latest-small (ver seção "Dataset" no `CLAUDE.md`), que atende ao requisito de ≥ 10.000 interações user-item.
 
 As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas no briefing, na ordem em que devem ser executadas. Requisitos que são transversais (valem para o projeto inteiro, não uma etapa específica) estão marcados como tal.
 
@@ -82,10 +82,14 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
 
 **Foco:** modelo neural treinado, registrado e documentado.
 
-- [ ] Treinar um modelo MLP ou embedding-based com PyTorch para a tarefa de recomendação.
-- [ ] Aplicar early stopping no treino.
-- [ ] Implementar e treinar baselines com Scikit-Learn para comparação.
-- [ ] Comparar o modelo PyTorch com os baselines usando no mínimo 4 métricas.
+- [x] Treinar um modelo MLP ou embedding-based com PyTorch para a tarefa de recomendação.
+  - `modelos/rede_neural.py` (`RedeNeural`): embeddings de usuário/filme + MLP + vieses + sigmoide, porta fiel do `NeuralRecommender` do notebook de referência (`models/recomendacao_movielens.ipynb`).
+- [x] Aplicar early stopping no treino.
+  - `treino/treinar.py` (`treinar_com_early_stopping`), monitorando RMSE de validação (`validacao.parquet`, saída do split temporal por usuário do `feature_eng`).
+- [x] Implementar e treinar baselines com Scikit-Learn para comparação.
+  - `avaliacao/baselines_sklearn.py`: `GlobalMean`, `UserItemBias`, SVD (`TruncatedSVD`), NMF, ItemKNN (`NearestNeighbors`), GBRT (`HistGradientBoostingRegressor`).
+- [x] Comparar o modelo PyTorch com os baselines usando no mínimo 4 métricas.
+  - `avaliacao/metricas_ranking.py` + stage `evaluate`: RMSE, MAE, Precision@10, Recall@10, NDCG@10, Coverage — tabela completa salva em `models/comparacao_modelos.json`.
 - [ ] Rastrear no mínimo 3 runs de experimentos no MLflow.
 - [ ] Registrar o melhor modelo no MLflow Model Registry.
 - [ ] Promover o modelo registrado pelo fluxo Staging → Production.

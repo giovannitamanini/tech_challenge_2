@@ -1,3 +1,5 @@
 {
-  "perda_treino_mse": 2.770035142629919
+  "rmse_treino": 0.7827318076270166,
+  "melhor_rmse_validacao": 0.8776382917146801,
+  "epocas_executadas": 11
 }

@@ -3303,6 +3303,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pyyaml" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "torch" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -3328,6 +3329,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "scikit-learn", specifier = ">=1.9.0" },
+    { name = "scipy", specifier = ">=1.18.0" },
     { name = "torch", specifier = ">=2.12.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.50.2" },
 ]

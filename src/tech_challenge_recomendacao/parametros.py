@@ -19,7 +19,8 @@ class ParametrosPreprocessamento(BaseModel):
 class ParametrosEngenhariaFeatures(BaseModel):
     """Parâmetros do stage `feature_eng`."""
 
-    proporcao_teste: float
+    fracao_validacao: float
+    fracao_teste: float
 
 
 class ParametrosTreino(BaseModel):
@@ -27,20 +28,29 @@ class ParametrosTreino(BaseModel):
 
     tipo_modelo: str
     dimensao_embedding: int
+    camadas_ocultas: list[int]
+    dropout: float
     taxa_aprendizado: float
+    decaimento_peso: float
     epocas: int
+    paciencia: int
     tamanho_lote: int
 
 
-class Parametros(BaseModel):
-    """Parâmetros de todos os stages do pipeline DVC.
+class ParametrosAvaliacao(BaseModel):
+    """Parâmetros do stage `evaluate`."""
 
-    O stage `evaluate` ainda não tem parâmetros próprios (ver `configs/params.yaml`).
-    """
+    relevancia_minima: float
+    top_k: int
+
+
+class Parametros(BaseModel):
+    """Parâmetros de todos os stages do pipeline DVC."""
 
     preprocessamento: ParametrosPreprocessamento
     engenharia_features: ParametrosEngenhariaFeatures
     treino: ParametrosTreino
+    avaliacao: ParametrosAvaliacao
 
 
 def carregar_parametros(caminho: Path = CAMINHO_PARAMETROS_PADRAO) -> Parametros:

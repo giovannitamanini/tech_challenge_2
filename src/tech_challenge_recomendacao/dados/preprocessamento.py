@@ -10,19 +10,19 @@ from tech_challenge_recomendacao.parametros import ParametrosPreprocessamento, c
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-COLUNAS_AVALIACOES = ["userId", "movieId", "rating"]
+COLUNAS_AVALIACOES = ["userId", "movieId", "rating", "timestamp"]
 
 
 def carregar_avaliacoes_brutas(caminho_ratings: Path) -> pd.DataFrame:
-    """Lê `ratings.csv`, descartando a coluna de timestamp (não usada no modelo).
+    """Lê `ratings.csv`, mantendo o timestamp (necessário para o split temporal).
 
     Args:
         caminho_ratings: Caminho do arquivo `ratings.csv` bruto.
 
     Returns:
-        DataFrame com as colunas `userId`, `movieId` e `rating`.
+        DataFrame com as colunas `userId`, `movieId`, `rating` e `timestamp`.
     """
-    tipos = {"userId": "int32", "movieId": "int32", "rating": "float32"}
+    tipos = {"userId": "int32", "movieId": "int32", "rating": "float32", "timestamp": "int64"}
     return pd.read_csv(caminho_ratings, usecols=COLUNAS_AVALIACOES, dtype=tipos)
 
 

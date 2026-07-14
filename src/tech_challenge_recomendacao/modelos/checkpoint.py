@@ -16,6 +16,7 @@ class MetadadosCheckpoint(TypedDict):
     n_usuarios: int
     n_filmes: int
     dimensao_embedding: int
+    hiperparametros_extra: dict[str, object]
 
 
 def salvar_checkpoint(
@@ -53,6 +54,7 @@ def carregar_checkpoint(caminho: Path) -> tuple[ModeloRecomendador, MetadadosChe
         metadados["n_usuarios"],
         metadados["n_filmes"],
         metadados["dimensao_embedding"],
+        **metadados["hiperparametros_extra"],
     )
     modelo.load_state_dict(checkpoint["state_dict"])
     modelo.eval()

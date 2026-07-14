@@ -25,6 +25,7 @@ stages:
           - engenharia_features
     outs:
       - data/processed_data/treino.parquet
+      - data/processed_data/validacao.parquet
       - data/processed_data/teste.parquet
       - data/processed_data/metadados_features.json
       - data/processed_data/mapeamento_ids.json
@@ -38,9 +39,11 @@ stages:
       - src/tech_challenge_recomendacao/modelos/capacidades.py
       - src/tech_challenge_recomendacao/modelos/fabrica.py
       - src/tech_challenge_recomendacao/modelos/fatoracao_matricial.py
+      - src/tech_challenge_recomendacao/modelos/rede_neural.py
       - src/tech_challenge_recomendacao/modelos/checkpoint.py
       - src/tech_challenge_recomendacao/parametros.py
       - data/processed_data/treino.parquet
+      - data/processed_data/validacao.parquet
       - data/processed_data/metadados_features.json
     params:
       - configs/params.yaml:
@@ -55,9 +58,18 @@ stages:
     cmd: uv run python -m tech_challenge_recomendacao.avaliacao.avaliar
     deps:
       - src/tech_challenge_recomendacao/avaliacao/avaliar.py
+      - src/tech_challenge_recomendacao/avaliacao/baselines_sklearn.py
+      - src/tech_challenge_recomendacao/avaliacao/metricas_ranking.py
       - src/tech_challenge_recomendacao/modelos/checkpoint.py
+      - data/processed_data/treino.parquet
       - data/processed_data/teste.parquet
+      - data/processed_data/metadados_features.json
       - models/modelo_recomendador.pt
+    params:
+      - configs/params.yaml:
+          - avaliacao
     metrics:
       - data/processed_data/metricas_avaliacao.json:
+          cache: false
+      - models/comparacao_modelos.json:
           cache: false

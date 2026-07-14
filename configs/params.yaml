@@ -1,23 +1,33 @@
 # Parâmetros do pipeline DVC (dvc.yaml), agrupados por stage.
 # A semente aleatória é única e vem de `Configuracoes` (.env), não é duplicada aqui.
+# Valores alinhados ao notebook de referência (models/recomendacao_movielens.ipynb),
+# para que o pipeline reproduza o mesmo modelo/dataset/split/hiperparâmetros.
 
 preprocessamento:
-  # Nº de linhas de ratings.csv usadas via amostragem aleatória reprodutível.
-  # `null` usa o dataset completo (~32M linhas) — mais lento, mas real.
-  tamanho_amostra: 200000
-  min_avaliacoes_por_usuario: 5
-  min_avaliacoes_por_filme: 5
+  # ml-latest-small (mesmo dataset do notebook) já é pequeno o bastante para não precisar
+  # de amostragem. `null` usa o dataset completo (100.836 avaliações).
+  tamanho_amostra: null
+  min_avaliacoes_por_usuario: 1
+  min_avaliacoes_por_filme: 1
 
 engenharia_features:
-  proporcao_teste: 0.2
+  # Split temporal por usuário: os 15% finais de cada usuário viram teste, os 15%
+  # anteriores a esses viram validação (early stopping), o resto vira treino.
+  fracao_validacao: 0.15
+  fracao_teste: 0.15
 
 treino:
-  tipo_modelo: fatoracao_matricial
-  dimensao_embedding: 16
-  taxa_aprendizado: 0.01
-  epocas: 5
+  tipo_modelo: rede_neural
+  dimensao_embedding: 32
+  camadas_ocultas: [64, 32, 16]
+  dropout: 0.2
+  taxa_aprendizado: 0.001
+  decaimento_peso: 0.00001
+  epocas: 40
+  paciencia: 4
   tamanho_lote: 1024
 
-# O stage `evaluate` ainda não tem parâmetros configuráveis (só RMSE/MAE no
-# conjunto de teste). Métricas de ranking (ex.: precisão@k) e seus parâmetros
-# entram na Etapa 4, junto com a comparação com baselines.
+avaliacao:
+  # Rating >= 4.0 conta como "relevante" para as métricas de ranking (Precision/Recall/NDCG).
+  relevancia_minima: 4.0
+  top_k: 10
