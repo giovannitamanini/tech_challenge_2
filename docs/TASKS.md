@@ -90,11 +90,16 @@ As tarefas abaixo estão organizadas nas 4 etapas de desenvolvimento definidas n
   - `avaliacao/baselines_sklearn.py`: `GlobalMean`, `UserItemBias`, SVD (`TruncatedSVD`), NMF, ItemKNN (`NearestNeighbors`), GBRT (`HistGradientBoostingRegressor`).
 - [x] Comparar o modelo PyTorch com os baselines usando no mínimo 4 métricas.
   - `avaliacao/metricas_ranking.py` + stage `evaluate`: RMSE, MAE, Precision@10, Recall@10, NDCG@10, Coverage — tabela completa salva em `models/comparacao_modelos.json`.
-- [ ] Rastrear no mínimo 3 runs de experimentos no MLflow.
-- [ ] Registrar o melhor modelo no MLflow Model Registry.
-- [ ] Promover o modelo registrado pelo fluxo Staging → Production.
-- [ ] Escrever um Model Card cobrindo: performance, limitações e possíveis vieses do modelo.
-- [ ] Finalizar o `README.md` do projeto com instruções completas de instalação e uso.
+- [x] Rastrear no mínimo 3 runs de experimentos no MLflow.
+  - Confirmado via consulta direta ao `mlflow.db` (6 runs `FINISHED` no experimento `recomendacao-movielens` após validação).
+- [x] Registrar o melhor modelo no MLflow Model Registry.
+  - `treino/treinar.py` (`registrar_e_mover_para_staging`): a cada run, loga o modelo treinado como versão nova de `recomendador-movielens` (`mlflow.pytorch.log_model`, formato `pickle`) e move para o estágio **Staging**.
+- [x] Promover o modelo registrado pelo fluxo Staging → Production.
+  - `avaliacao/avaliar.py` (`promover_melhor_modelo_para_producao`): compara o RMSE de teste do candidato em Staging com o da versão hoje em Production (tag `rmse_teste`); promove só se empatar ou melhorar (sem Production ainda, promove direto — bootstrap). Testado ponta a ponta via `dvc repro` contra um MLflow local: `recomendador-movielens v1` promovido a Production com sucesso.
+- [x] Escrever um Model Card cobrindo: performance, limitações e possíveis vieses do modelo.
+  - `docs/MODEL_CARD.md` já cobre os 12 itens padrão (Mitchell et al., 2019): performance, limitações, vieses conhecidos, considerações éticas etc.
+- [x] Finalizar o `README.md` do projeto com instruções completas de instalação e uso.
+  - Cobre pré-requisitos, instalação (`uv sync`/`pre-commit install`), DVC (credenciais S3, `pull`/`push`, troubleshooting), pipeline (DVC+MLflow, Model Registry), API (endpoints + Postman), Docker/Compose e testes/lint. Corrigido um bug real de instrução: `docker build` sem `--target` builda o estágio `api` (é o último do `Dockerfile`), não `runtime` — a versão anterior sugeria implicitamente o contrário. Todos os links locais verificados (existem os 10 arquivos referenciados).
 - [ ] Gravar o vídeo de até 5 minutos no formato STAR (ver seção abaixo).
 - [ ] *(Opcional / bônus)* Fazer o deploy do container em nuvem (AWS, Azure ou GCP), acessível via URL pública.
 

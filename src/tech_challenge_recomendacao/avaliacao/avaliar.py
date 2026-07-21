@@ -16,6 +16,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 import torch
+from mlflow.tracking import MlflowClient
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from tech_challenge_recomendacao.avaliacao.baselines_sklearn import (
@@ -34,6 +35,7 @@ from tech_challenge_recomendacao.parametros import carregar_parametros
 sys.stdout.reconfigure(encoding="utf-8")
 
 NOME_EXPERIMENTO = "recomendacao-movielens"
+NOME_MODELO_REGISTRADO = "recomendador-movielens"
 CAMINHO_MODELO = Path("models/modelo_recomendador.pt")
 CAMINHO_METRICAS = Path("data/processed_data/metricas_avaliacao.json")
 CAMINHO_COMPARACAO = Path("models/comparacao_modelos.json")
@@ -201,6 +203,51 @@ def salvar_e_logar_comparacao(comparacao: dict[str, dict[str, float]], nome_mode
         mlflow.log_artifact(str(CAMINHO_COMPARACAO))
 
 
+def promover_melhor_modelo_para_producao(rmse_candidato: float) -> None:
+    """Promove a versão mais recente do Model Registry (Staging) para Production.
+
+    Compara o RMSE de teste do candidato com o da versão hoje em Production (guardado
+    na tag `rmse_teste` de cada versão): só promove se o candidato empatar ou melhorar
+    esse RMSE. Sem nenhuma versão em Production ainda, o candidato é promovido direto
+    (bootstrap do Registry). A comparação é contra a Production atual — não contra os
+    baselines de `comparacao_modelos.json`, que servem para o relatório de métricas
+    (§ Etapa 4), não como critério de promoção do Registry.
+
+    Args:
+        rmse_candidato: RMSE de teste do modelo campeão nesta run do `evaluate`.
+    """
+    cliente = MlflowClient()
+    candidatas = cliente.get_latest_versions(NOME_MODELO_REGISTRADO, stages=["Staging"])
+    if not candidatas:
+        print(f"[evaluate] Nenhuma versão em Staging para '{NOME_MODELO_REGISTRADO}'.")
+        return
+    versao_candidata = max(candidatas, key=lambda v: int(v.version))
+    cliente.set_model_version_tag(
+        NOME_MODELO_REGISTRADO, versao_candidata.version, "rmse_teste", str(rmse_candidato)
+    )
+
+    versoes_producao = cliente.get_latest_versions(NOME_MODELO_REGISTRADO, stages=["Production"])
+    if versoes_producao:
+        rmse_producao = float(versoes_producao[0].tags.get("rmse_teste", "inf"))
+        if rmse_candidato > rmse_producao:
+            print(
+                f"[evaluate] Candidato v{versao_candidata.version} (RMSE={rmse_candidato:.4f}) "
+                f"não supera a Production atual (RMSE={rmse_producao:.4f}) — mantido em Staging."
+            )
+            return
+
+    cliente.transition_model_version_stage(
+        name=NOME_MODELO_REGISTRADO,
+        version=versao_candidata.version,
+        stage="Production",
+        archive_existing_versions=True,
+    )
+    print(
+        f"[evaluate] {NOME_MODELO_REGISTRADO} v{versao_candidata.version} promovido a "
+        f"Production (RMSE={rmse_candidato:.4f})."
+    )
+
+
 def main() -> None:
     """Executa o stage `evaluate`: compara o modelo campeão com os baselines Scikit-Learn."""
     parametros = carregar_parametros()
@@ -230,6 +277,7 @@ def main() -> None:
 
     salvar_metricas_campeao(comparacao, nome_modelo)
     salvar_e_logar_comparacao(comparacao, nome_modelo)
+    promover_melhor_modelo_para_producao(comparacao[nome_modelo]["RMSE"])
 
     metricas_campeao = comparacao[nome_modelo]
     print(

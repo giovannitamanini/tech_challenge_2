@@ -7,8 +7,10 @@ import sys
 from pathlib import Path
 
 import mlflow
+import mlflow.pytorch
 import pandas as pd
 import torch
+from mlflow.tracking import MlflowClient
 from torch import nn
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader, TensorDataset
@@ -22,6 +24,7 @@ from tech_challenge_recomendacao.parametros import ParametrosTreino, carregar_pa
 sys.stdout.reconfigure(encoding="utf-8")
 
 NOME_EXPERIMENTO = "recomendacao-movielens"
+NOME_MODELO_REGISTRADO = "recomendador-movielens"
 CAMINHO_MODELO = Path("models/modelo_recomendador.pt")
 CAMINHO_METRICAS = Path("data/processed_data/metricas_treino.json")
 
@@ -149,12 +152,19 @@ def treinar_com_early_stopping(
 
     for epoca in range(1, parametros.epocas + 1):
         rmse_validacao = _rodar_epoca_de_treino(
-            modelo, dataloader_treino, dataloader_validacao, otimizador, funcao_perda,
-            epoca, parametros.epocas,
+            modelo,
+            dataloader_treino,
+            dataloader_validacao,
+            otimizador,
+            funcao_perda,
+            epoca,
+            parametros.epocas,
         )
         if estado.atualizar(rmse_validacao, modelo):
-            print(f"[train] early stopping na época {epoca} "
-                  f"(melhor RMSE validação: {estado.melhor_rmse_validacao:.4f}).")
+            print(
+                f"[train] early stopping na época {epoca} "
+                f"(melhor RMSE validação: {estado.melhor_rmse_validacao:.4f})."
+            )
             break
 
     modelo.load_state_dict(estado.melhor_estado)
@@ -238,6 +248,31 @@ def salvar_e_logar_checkpoint(
     mlflow.log_artifact(str(CAMINHO_MODELO))
 
 
+def registrar_e_mover_para_staging(modelo: ModeloRecomendador) -> str:
+    """Registra o modelo treinado no MLflow Model Registry e o move para o estágio Staging.
+
+    A promoção Staging → Production é decidida depois, pelo stage `evaluate`
+    (`avaliacao/avaliar.py`), que compara o RMSE desta versão com os baselines.
+
+    Args:
+        modelo: Modelo já treinado (pesos da melhor época).
+
+    Returns:
+        Número da versão recém-criada no Model Registry.
+    """
+    info_modelo = mlflow.pytorch.log_model(
+        modelo,
+        name="modelo_pytorch",
+        registered_model_name=NOME_MODELO_REGISTRADO,
+        serialization_format=mlflow.pytorch.SERIALIZATION_FORMAT_PICKLE,
+    )
+    versao = info_modelo.registered_model_version
+    MlflowClient().transition_model_version_stage(
+        name=NOME_MODELO_REGISTRADO, version=versao, stage="Staging"
+    )
+    return versao
+
+
 def registrar_run_mlflow(
     modelo: ModeloRecomendador,
     dataloader_treino: DataLoader,
@@ -265,6 +300,7 @@ def registrar_run_mlflow(
             modelo, dataloader_treino, dataloader_validacao, parametros
         )
         salvar_e_logar_checkpoint(modelo, parametros, metadados)
+        registrar_e_mover_para_staging(modelo)
     return metricas
 
 

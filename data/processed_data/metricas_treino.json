@@ -1,5 +1,5 @@
 {
-  "rmse_treino": 0.7827318076270166,
-  "melhor_rmse_validacao": 0.8776382917146801,
+  "rmse_treino": 0.7827486932706841,
+  "melhor_rmse_validacao": 0.8776159515033171,
   "epocas_executadas": 11
 }

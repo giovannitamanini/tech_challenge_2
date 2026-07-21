@@ -10,9 +10,10 @@ empacotamento via **Docker**.
 > (estrutura, ambiente, containerização/versionamento) concluídas. Etapa 4: o modelo em
 > produção já é a rede neural (`RedeNeural`, embeddings + MLP + vieses), treinada com early
 > stopping e comparada com 6 baselines Scikit-Learn/estatísticos em 6 métricas (tabela
-> completa em `models/comparacao_modelos.json`) — ver seção "Pipeline" abaixo. Ainda faltam:
-> promoção do modelo no MLflow Model Registry (Staging → Production), Model Card/README
-> finais de entrega e o vídeo STAR.
+> completa em `models/comparacao_modelos.json`) — ver seção "Pipeline" abaixo. O stage `train`
+> registra cada run no MLflow Model Registry (`recomendador-movielens`, estágio Staging) e o
+> stage `evaluate` promove Staging → Production quando o candidato empata ou melhora o RMSE
+> de teste da Production atual. Falta: o vídeo STAR.
 
 ## Equipe
 
@@ -37,8 +38,8 @@ configs/        # parâmetros declarativos do pipeline (configs/params.yaml)
 docs/           # TASKS.md, relatório técnico, model card, evidências, coleção Postman
 scripts/        # scripts utilitários (ex.: validate_env.py)
 dvc.yaml        # pipeline DVC: preprocess → feature_eng → train → evaluate
-Dockerfile      # multi-stage: builder / mlflow-server / runtime
-docker-compose.yml  # serviços mlflow + train
+Dockerfile      # multi-stage: builder / mlflow-server / runtime / api
+docker-compose.yml  # serviços mlflow + train + api
 ```
 
 ## Pré-requisitos
@@ -98,11 +99,14 @@ uv run dvc push    # envia dados/modelos versionados localmente para o S3
 O pipeline (`dvc.yaml`) tem 4 stages — `preprocess → feature_eng → train → evaluate` — cada um
 executável de ponta a ponta via `dvc repro`. `feature_eng` faz um split **temporal por
 usuário** (treino/validação/teste). O stage `train` treina a rede neural (`RedeNeural`) com
-**early stopping** (monitorando RMSE de validação) e loga parâmetros/métricas/artefato no
-MLflow a cada run. O stage `evaluate` compara o modelo treinado com 6 baselines Scikit-Learn/
-estatísticos em 6 métricas, salvando a tabela comparativa completa em
-`models/comparacao_modelos.json` (e as métricas do modelo campeão em
-`data/processed_data/metricas_avaliacao.json`, consumidas pela API).
+**early stopping** (monitorando RMSE de validação), loga parâmetros/métricas/artefato no
+MLflow a cada run e registra o modelo treinado como nova versão de `recomendador-movielens`
+no **MLflow Model Registry**, no estágio **Staging**. O stage `evaluate` compara o modelo
+treinado com 6 baselines Scikit-Learn/estatísticos em 6 métricas, salvando a tabela
+comparativa completa em `models/comparacao_modelos.json` (e as métricas do modelo campeão em
+`data/processed_data/metricas_avaliacao.json`, consumidas pela API) — e então decide se
+promove a versão em Staging para **Production**: só promove se o RMSE de teste do candidato
+empatar ou melhorar o da versão hoje em Production (sem Production ainda, promove direto).
 
 Precisa de um servidor MLflow acessível na URI configurada em `.env`
 (`MLFLOW_TRACKING_URI`, padrão `http://localhost:5000`):
@@ -117,9 +121,14 @@ uv run dvc metrics show    # mostra as métricas de train/evaluate
 Parâmetros do pipeline (tamanho da amostra, dimensão do embedding, épocas etc.) ficam em
 [`configs/params.yaml`](configs/params.yaml), não hardcoded no código.
 
+Para ver os runs, o modelo registrado (`recomendador-movielens`) e qual versão está em
+**Production**, abra a UI do MLflow no navegador, na mesma URI de `MLFLOW_TRACKING_URI`
+(`http://localhost:5000` por padrão) → aba **Models**.
+
 ## API
 
-Serve o modelo treinado (`models/modelo_recomendador.pt`) via HTTP:
+Serve o modelo treinado (`models/modelo_recomendador.pt`) via HTTP — precisa desse arquivo já
+existir (via `uv run dvc pull` ou `uv run dvc repro`, seções acima) antes de subir a API:
 
 ```bash
 uv run uvicorn tech_challenge_recomendacao.api.aplicacao:app --reload
@@ -148,13 +157,18 @@ vez — ver `api/servico_treino.py` e a seção "Docker" abaixo (Docker-fora-do-
 
 ## Docker
 
+O `Dockerfile` é multi-stage (`builder → mlflow-server → runtime → api`, nessa ordem — `api` é
+o último estágio do arquivo). **Sem `--target`, `docker build` builda o `api`** (é o padrão do
+Docker: o último estágio do arquivo), não o `runtime` — sempre informe o estágio desejado:
+
 ```bash
-docker build -t tech-challenge-recomendacao .
+docker build --target runtime -t tech-challenge-recomendacao .
 docker run --rm --env-file .env -v "$(pwd)/data:/app/data" -v "$(pwd)/models:/app/models" \
   tech-challenge-recomendacao   # roda o stage `train` isolado (precisa de MLflow acessível)
 ```
 
-Ou via `docker-compose.yml`, que sobe MLflow, API e treino juntos:
+Ou via `docker-compose.yml`, que já declara o `target:` de cada serviço e sobe MLflow, API e
+treino juntos:
 
 ```bash
 cp .env.example .env   # defina HOST_PROJECT_DIR (ver comentário no arquivo) antes de subir
@@ -214,9 +228,11 @@ tabela e do `docs/MODEL_CARD.md`.
 - [`docs/evidencias/`](docs/evidencias/) — evidências de execução (instalação limpa,
   diagnóstico de baseline).
 
-## Licença dos dados
+## Licença
 
-Dataset MovieLens (GroupLens/University of Minnesota) — uso apenas para fins de
+**Código:** [MIT](LICENSE) — ver `LICENSE` na raiz do repositório.
+
+**Dados:** dataset MovieLens (GroupLens/University of Minnesota) — uso apenas para fins de
 pesquisa/acadêmicos, sem uso comercial sem autorização do GroupLens Research Project, e com
 citação obrigatória de Harper & Konstan (2015), *ACM TiiS*. Ver `data/raw_data/README.txt`
 para o texto completo da licença.

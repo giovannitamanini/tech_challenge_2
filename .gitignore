@@ -34,3 +34,4 @@ data/processed_data/ultima_execucao_treino.log
 .env
 .env.*
 !.env.example
+.claude/settings.local.json
